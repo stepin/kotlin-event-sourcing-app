@@ -1,1 +1,1 @@
-rootProject.name = "kotlin-bootstrap-app"
+rootProject.name = "kotlin-event-sourcing-app"

@@ -14,7 +14,7 @@ class OpenApiConfig {
         return OpenAPI()
             .info(
                 Info()
-                    .title("Kotlin Bootstrap App API")
+                    .title("Kotlin Event Sourcing App API")
                     .description(
                         """
                             Some long description.

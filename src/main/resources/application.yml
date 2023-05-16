@@ -1,6 +1,13 @@
 app:
     base-url: http://localhost:8080
 
+es:
+    startup-type: seed
+    db-processing-from: 0
+    db-processing-to: -1
+    events-package: "name.stepin.domain"
+    processors-package: "name.stepin.domain"
+
 spring:
   datasource:
     url: jdbc:postgresql://127.0.0.1:55000/kotlin-bootstrap-app_dev

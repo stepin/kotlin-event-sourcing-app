@@ -1,0 +1,18 @@
+type UserResult {
+    email: String!
+    name: String!
+}
+
+type AccountResult {
+    name: String!
+}
+
+type Query {
+    allUsers: [UserResult!]!
+    usersSince(date:DateTime!): [UserResult!]!
+    userAudit(userGuid:UUID!): [String!]!
+    allAccounts: [AccountResult!]!
+}
+
+scalar DateTime
+scalar UUID

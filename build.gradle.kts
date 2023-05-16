@@ -71,12 +71,16 @@ dependencies {
     // HTTP server
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-graphql")
+    implementation(libs.graphql.java.extended.scalars)
 
     // External information: health, metrics, apis
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     implementation(libs.springdoc.webflux.ui)
+
+    // ES
+    implementation("org.reflections:reflections:0.10.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
@@ -167,7 +171,7 @@ tasks.withType<DokkaTask>().configureEach {
             // adds source links that lead to this repository, allowing readers
             // to easily find source code for inspected declarations
             val repo =
-                "http://localhost:3000/stepin/kotlin-bootstrap-app/src/branch/main/src/main/kotlin"
+                "http://localhost:3000/stepin/kotlin-event-sourcing-app/src/branch/main/src/main/kotlin"
             sourceLink {
                 localDirectory.set(file("src/main/kotlin"))
                 remoteUrl.set(URL(repo))
@@ -191,9 +195,9 @@ sonar {
     properties {
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/kover/xml/report.xml")
         property("sonar.host.url", "http://localhost:9000")
-        property("sonar.projectKey", "kotlin-bootstrap-app")
-        property("sonar.projectName", "kotlin-bootstrap-app")
-        property("sonar.token", "sqp_821b1d3209761625bdd29259674237d429bce626")
+        property("sonar.projectKey", "kotlin-event-sourcing-app")
+        property("sonar.projectName", "kotlin-event-sourcing-app")
+        property("sonar.token", "sqp_3d6f27a2ec7b2c6d1806619ce79ac0fbe12e4bbd")
     }
 }
 tasks.sonar {
@@ -214,13 +218,13 @@ jib {
         image = "azul/zulu-openjdk:17-jre"
     }
     to {
-        image = "stepin/kotlin-bootstrap-app"
+        image = "stepin/kotlin-event-sourcing-app"
         tags = setOf("$version")
     }
     container {
         labels.set(
             mapOf(
-                "org.opencontainers.image.title" to "kotlin-bootstrap-app",
+                "org.opencontainers.image.title" to "kotlin-event-sourcing-app",
                 "org.opencontainers.image.version" to "$version",
             ),
         )

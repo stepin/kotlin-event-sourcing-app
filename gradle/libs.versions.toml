@@ -21,6 +21,7 @@ log4j-kotlin = { module = "org.apache.logging.log4j:log4j-api-kotlin", version.r
 wiremock = { module = "com.github.tomakehurst:wiremock-jre8-standalone", version.ref = "wiremock" }
 #wiremock = { module = "com.github.tomakehurst:wiremock-jre8", version.ref = "wiremock" }
 springdoc-webflux-ui = { module = "org.springdoc:springdoc-openapi-starter-webflux-ui", version.ref = "springDoc" }
+graphql-java-extended-scalars = { module = 'com.graphql-java:graphql-java-extended-scalars', version="19.1"}
 
 [plugins]
 kover = { id = "org.jetbrains.kotlinx.kover", version = "0.6.1" }

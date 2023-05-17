@@ -11,6 +11,7 @@ object PostgresFactory {
 
     fun postgres(): PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15.2")
         .withReuse(true)
+        .waitingFor(PostgresWaitingStrategy())
 
     fun dslContext(postgres: PostgreSQLContainer<*>) = DSL.using(postgres.createConnection(""))
 
@@ -22,10 +23,6 @@ object PostgresFactory {
         }
 
     fun initDb(postgres: PostgreSQLContainer<*>) {
-        while (!TransactionIntegrationTests.postgresContainer.isRunning) {
-            Thread.sleep(100)
-        }
-
         val flyway = Flyway.configure()
             .schemas("public")
             .dataSource(dataSource(postgres))
@@ -40,7 +37,9 @@ object PostgresFactory {
         registry.add("spring.datasource.password") { TransactionIntegrationTests.postgresContainer.password }
         registry.add("spring.r2dbc.url") {
             "r2dbc:postgresql://" +
-                "${TransactionIntegrationTests.postgresContainer.host}:${TransactionIntegrationTests.postgresContainer.firstMappedPort}/${TransactionIntegrationTests.postgresContainer.databaseName}"
+                "${TransactionIntegrationTests.postgresContainer.host}:" +
+                "${TransactionIntegrationTests.postgresContainer.firstMappedPort}/" +
+                TransactionIntegrationTests.postgresContainer.databaseName
         }
         registry.add("spring.r2dbc.username") { TransactionIntegrationTests.postgresContainer.username }
         registry.add("spring.r2dbc.password") { TransactionIntegrationTests.postgresContainer.password }

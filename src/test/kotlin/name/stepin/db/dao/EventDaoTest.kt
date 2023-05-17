@@ -11,28 +11,41 @@ import name.stepin.fixture.PostgresFactory.postgres
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.impl.DSL
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDateTime
 import java.util.*
 
 @Testcontainers
 class EventDaoTest {
-
-    @Container
-    var postgres = postgres()
-
     private lateinit var db: DSLContext
     private lateinit var jdbcContext: DSLContext
     private lateinit var dao: EventDao
     private lateinit var firstGuid: UUID
 
+    companion object {
+        private var postgres = postgres()
+
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            postgres.start()
+            initDb(postgres)
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun afterAll() {
+            postgres.stop()
+        }
+    }
+
     @BeforeEach
     fun setUp() {
-        initDb(postgres)
         db = dslContext(postgres)
         jdbcContext = dslContext(postgres)
 

@@ -11,6 +11,7 @@ import name.stepin.es.store.EventMetadata
 import name.stepin.es.store.EventStoreReader
 import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.stereotype.Service
+import java.lang.reflect.InvocationTargetException
 
 @Service
 class InlineProcessor(
@@ -55,7 +56,9 @@ class InlineProcessor(
             try {
                 reactors.process(event, meta)
             } catch (e: RuntimeException) {
-                logger.error("reactor error $event $meta", e)
+                logger.error("reactor runtime error $event $meta", e)
+            } catch (e: InvocationTargetException) {
+                logger.error("reactor target error $event $meta", e)
             }
         }
 

@@ -16,6 +16,7 @@ import name.stepin.fixture.PostgresFactory.initDb
 import name.stepin.fixture.PostgresFactory.postgres
 import name.stepin.fixture.PostgresFactory.postgresProperties
 import org.jooq.DSLContext
+import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,9 +29,6 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.UndeclaredThrowableException
-
 
 @Testcontainers
 @SpringBootTest
@@ -87,7 +85,7 @@ class TransactionIntegrationTests {
         val event = userRegistered(2000)
         coEvery { userProjector.handleUserRegistered(any(), any()) } throws IllegalStateException("error simulation")
 
-        assertThrows<InvocationTargetException> { eventStorePublisher.publish(event) }
+        assertThrows<DataAccessException> { eventStorePublisher.publish(event) }
 
         assertEquals(true, eventsDao.isNoEvents())
         coVerify(exactly = 1) { userProjector.handleUserRegistered(any(), any()) }
@@ -99,7 +97,7 @@ class TransactionIntegrationTests {
         val event = userRegistered(3000)
         coEvery { userRegisteredEmailReactor.handle(any()) } throws IllegalStateException("error simulation")
 
-        assertThrows<InvocationTargetException> { eventStorePublisher.publish(event) }
+        eventStorePublisher.publish(event)
 
         assertEquals(false, eventsDao.isNoEvents())
         coVerify(exactly = 1) { userRegisteredEmailReactor.handle(any()) }
@@ -118,7 +116,7 @@ class TransactionIntegrationTests {
         )
         coEvery { userProjector.handleUserRegistered(event2, any()) } throws IllegalStateException("error simulation")
 
-        assertThrows<UndeclaredThrowableException> { eventStorePublisher.publish(events) }
+        assertThrows<DataAccessException> { eventStorePublisher.publish(events) }
 
         val eventsCount = jdbcDb.fetchCount(EVENTS)
         assertEquals(1, eventsCount)

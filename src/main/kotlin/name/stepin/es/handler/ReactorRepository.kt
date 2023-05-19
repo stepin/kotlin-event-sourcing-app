@@ -3,6 +3,7 @@ package name.stepin.es.handler
 import jakarta.annotation.PostConstruct
 import name.stepin.es.store.DomainEvent
 import name.stepin.es.store.EventMetadata
+import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.lang.reflect.InvocationTargetException
@@ -16,6 +17,8 @@ class ReactorRepository(
     reflectionHelper = reflectionHelper,
     applicationContext = applicationContext,
 ) {
+    companion object : Logging
+
     @PostConstruct
     fun init() {
         initProcessor()
@@ -30,6 +33,7 @@ class ReactorRepository(
         }
         for ((processor, methodName, withMeta) in processors) {
             try {
+                logger.debug { "Reactor ${processor::class.java} $methodName $withMeta" }
                 if (withMeta) {
                     processor.invokeSuspendFunction(methodName, event, meta)
                 } else {

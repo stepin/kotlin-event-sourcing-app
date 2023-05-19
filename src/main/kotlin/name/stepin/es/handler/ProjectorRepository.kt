@@ -3,6 +3,7 @@ package name.stepin.es.handler
 import jakarta.annotation.PostConstruct
 import name.stepin.es.store.DomainEvent
 import name.stepin.es.store.EventMetadata
+import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 
@@ -15,6 +16,8 @@ class ProjectorRepository(
     reflectionHelper = reflectionHelper,
     applicationContext = applicationContext,
 ) {
+    companion object : Logging
+
     @PostConstruct
     fun init() {
         initProcessor()
@@ -28,6 +31,7 @@ class ProjectorRepository(
             return
         }
         for ((processor, methodName, withMeta) in processors) {
+            logger.debug { "Projector ${processor::class.java} $methodName $withMeta" }
             if (withMeta) {
                 processor.invokeSuspendFunction(methodName, event, meta)
             } else {

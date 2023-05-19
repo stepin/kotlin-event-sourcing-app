@@ -32,9 +32,6 @@ object PostgresFactory {
     }
 
     fun postgresProperties(registry: DynamicPropertyRegistry) {
-        registry.add("spring.datasource.url") { TransactionIntegrationTests.postgresContainer.jdbcUrl }
-        registry.add("spring.datasource.username") { TransactionIntegrationTests.postgresContainer.username }
-        registry.add("spring.datasource.password") { TransactionIntegrationTests.postgresContainer.password }
         registry.add("spring.r2dbc.url") {
             "r2dbc:postgresql://" +
                 "${TransactionIntegrationTests.postgresContainer.host}:" +

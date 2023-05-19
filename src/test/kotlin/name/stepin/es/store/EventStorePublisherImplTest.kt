@@ -10,15 +10,12 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import name.stepin.config.EventSourcingConfig
 import name.stepin.db.sql.tables.records.EventsRecord
-import name.stepin.db.sql.tables.references.EVENTS
 import name.stepin.es.handler.ReflectionHelper
 import name.stepin.es.processor.InlineProcessor
 import name.stepin.fixture.EventsFactory.flow3events
 import name.stepin.fixture.EventsFactory.userRegistered
-import org.jooq.Configuration
-import org.jooq.DSLContext
-import org.jooq.Publisher
-import org.jooq.TransactionalPublishable
+import name.stepin.utils.coInsert
+import org.jooq.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -35,7 +32,7 @@ class EventStorePublisherImplTest {
     }
 
     @MockK
-    lateinit var jdbcDb: DSLContext
+    lateinit var db: DSLContext
 
     @MockK
     lateinit var inlineProcessor: InlineProcessor
@@ -45,12 +42,12 @@ class EventStorePublisherImplTest {
         eventMapper = EventMapper(ReflectionHelper(EventSourcingConfig(eventsPackage = "name.stepin")), objectMapper)
         eventMapper.initEvent2class()
 
-        service = EventStorePublisherImpl(eventMapper, jdbcDb, inlineProcessor)
+        service = EventStorePublisherImpl(eventMapper, db, inlineProcessor)
     }
 
     @AfterEach
     fun tearDown() {
-        confirmVerified(jdbcDb, inlineProcessor)
+        confirmVerified(db, inlineProcessor)
     }
 
     @Test
@@ -89,55 +86,53 @@ class EventStorePublisherImplTest {
     fun `publish one default case`() = runBlocking {
         val event = userRegistered(1)
         val meta = EventMetadata()
-        val record = spyk(EventsRecord())
         val dsl = mockk<DSLContext>()
         val configuration = mockk<Configuration>()
-        every { jdbcDb.transactionPublisher<UUID>(any()) } answers {
-            val block = firstArg<TransactionalPublishable<UUID>>()
-            val reactivePublisher = block.run(configuration)
-            val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
-            jooqPublisher
+        mockkStatic("name.stepin.utils.JooqKotlin") {
+            coEvery { dsl.coInsert(any<EventsRecord>()) } returns 10
+            every { db.transactionPublisher<UUID>(any()) } answers {
+                val block = firstArg<TransactionalPublishable<UUID>>()
+                val reactivePublisher = block.run(configuration)
+                val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
+                jooqPublisher
+            }
+            every { configuration.dsl() } returns dsl
+            coEvery { inlineProcessor.process(event, meta, false) } returns Unit
+
+            val actual = service.publish(event, meta)
+
+            assertEquals(event.guid, actual)
+            verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
+            verify(exactly = 1) { configuration.dsl() }
+            coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
+            coVerify(exactly = 1) { inlineProcessor.process(event, meta, false) }
         }
-        every { configuration.dsl() } returns dsl
-        every { dsl.newRecord(EVENTS) } returns record
-        every { record.store() } returns 10
-        coEvery { inlineProcessor.process(event, meta, false) } returns Unit
-
-        val actual = service.publish(event, meta)
-
-        assertEquals(event.guid, actual)
-        verify(exactly = 1) { jdbcDb.transactionPublisher<UUID>(any()) }
-        verify(exactly = 1) { configuration.dsl() }
-        verify(exactly = 1) { dsl.newRecord(EVENTS) }
-        verify(exactly = 1) { record.store() }
-        coVerify(exactly = 1) { inlineProcessor.process(event, meta, false) }
     }
 
     @Test
     fun `publish one skip reactor case`() = runBlocking {
         val event = userRegistered(1)
         val meta = EventMetadata()
-        val record = spyk(EventsRecord())
         val dsl = mockk<DSLContext>()
         val configuration = mockk<Configuration>()
-        every { jdbcDb.transactionPublisher<UUID>(any()) } answers {
-            val block = firstArg<TransactionalPublishable<UUID>>()
-            val reactivePublisher = block.run(configuration)
-            val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
-            jooqPublisher
+        mockkStatic("name.stepin.utils.JooqKotlin") {
+            every { db.transactionPublisher<UUID>(any()) } answers {
+                val block = firstArg<TransactionalPublishable<UUID>>()
+                val reactivePublisher = block.run(configuration)
+                val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
+                jooqPublisher
+            }
+            every { configuration.dsl() } returns dsl
+            coEvery { dsl.coInsert(any<EventsRecord>()) } returns 1
+            coEvery { inlineProcessor.process(event, meta, true) } returns Unit
+
+            val actual = service.publish(event, meta, true)
+
+            assertEquals(event.guid, actual)
+            verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
+            verify(exactly = 1) { configuration.dsl() }
+            coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
+            coVerify(exactly = 1) { inlineProcessor.process(event, meta, true) }
         }
-        every { configuration.dsl() } returns dsl
-        every { dsl.newRecord(EVENTS) } returns record
-        every { record.store() } returns 10
-        coEvery { inlineProcessor.process(event, meta, true) } returns Unit
-
-        val actual = service.publish(event, meta, true)
-
-        assertEquals(event.guid, actual)
-        verify(exactly = 1) { jdbcDb.transactionPublisher<UUID>(any()) }
-        verify(exactly = 1) { configuration.dsl() }
-        verify(exactly = 1) { dsl.newRecord(EVENTS) }
-        verify(exactly = 1) { record.store() }
-        coVerify(exactly = 1) { inlineProcessor.process(event, meta, true) }
     }
 }

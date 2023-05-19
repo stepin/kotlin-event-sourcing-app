@@ -13,44 +13,29 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.impl.DSL.noCondition
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
 class EventDao(
     private val db: DSLContext,
-    @Qualifier("jdbcDb")
-    private val jdbcDb: DSLContext,
 ) {
     companion object : Logging
 
-    fun newRecord(): EventsRecord {
-        return jdbcDb.newRecord(EVENTS)
-    }
+    suspend fun byGuid(guid: EventGuid): EventsRecord? = db
+        .select(EVENTS)
+        .from(EVENTS)
+        .where(EVENTS.GUID.eq(guid))
+        .awaitFirstOrNull()
+        ?.value1()
 
-    suspend fun byGuid(guid: EventGuid): EventsRecord? {
-        return Mono.from(
-            db
-                .select(EVENTS)
-                .from(EVENTS)
-                .where(EVENTS.GUID.eq(guid)),
-        )
-            .map { it.value1() }
-            .awaitFirstOrNull()
-    }
+    suspend fun eventsCount(): Int = db
+        .selectCount()
+        .from(EVENTS)
+        .awaitFirst()
+        .value1()
 
-    suspend fun isNoEvents(): Boolean {
-        return Mono.from(
-            db
-                .selectCount()
-                .from(EVENTS),
-        )
-            .map { it.value1() == 0 }
-            .awaitFirst()
-    }
+    suspend fun isNoEvents(): Boolean = eventsCount() == 0
 
     fun getEventsListOnCondition(
         mainCondition: Condition,
@@ -95,6 +80,6 @@ class EventDao(
             .orderBy(EVENTS.ID.asc())
         val query = if (maxBatchSize != null) queryWithoutLimit.limit(maxBatchSize) else queryWithoutLimit
 
-        return Flux.from(query).asFlow()
+        return query.asFlow()
     }
 }

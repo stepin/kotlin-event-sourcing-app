@@ -43,7 +43,6 @@ class EventMapperTest {
 
     @Test
     fun `toRecord main case`() {
-        val actual = EventsRecord()
         val event = userMetaUpdated(1)
         val meta = EventMetadata()
 
@@ -75,7 +74,7 @@ class EventMapperTest {
             body = JSONB.valueOf(json)
         }
 
-        service.toRecord(actual, event, meta)
+        val actual = service.toRecord(event, meta)
 
         assertEquals(expected.guid, actual.guid)
         assertEquals(expected.accountGuid, actual.accountGuid)

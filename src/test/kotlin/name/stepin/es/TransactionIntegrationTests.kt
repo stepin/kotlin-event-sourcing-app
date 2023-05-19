@@ -4,8 +4,11 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.junit5.MockKExtension
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import name.stepin.db.dao.EventDao
+import name.stepin.db.entity.UserEntity
+import name.stepin.db.repository.UserRepository
 import name.stepin.db.sql.tables.references.EVENTS
 import name.stepin.domain.user.projector.UserProjector
 import name.stepin.domain.user.reactor.UserRegisteredEmailReactor
@@ -16,19 +19,19 @@ import name.stepin.fixture.PostgresFactory.initDb
 import name.stepin.fixture.PostgresFactory.postgres
 import name.stepin.fixture.PostgresFactory.postgresProperties
 import org.jooq.DSLContext
-import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.lang.reflect.InvocationTargetException
 
 @Testcontainers
 @SpringBootTest
@@ -42,8 +45,10 @@ class TransactionIntegrationTests {
     lateinit var eventsDao: EventDao
 
     @Autowired
-    @Qualifier("jdbcDb")
-    lateinit var jdbcDb: DSLContext
+    lateinit var userRepository: UserRepository
+
+    @Autowired
+    lateinit var db: DSLContext
 
     @SpykBean
     lateinit var userProjector: UserProjector
@@ -65,7 +70,7 @@ class TransactionIntegrationTests {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
         initDb(postgresContainer)
-        jdbcDb.delete(EVENTS).execute()
+        db.delete(EVENTS).awaitFirst()
     }
 
     @Test
@@ -80,12 +85,27 @@ class TransactionIntegrationTests {
     }
 
     @Test
+    fun `exception in projector rollbacks transaction on spring data error`() = runBlocking {
+        assertEquals(true, eventsDao.isNoEvents())
+        val event = userRegistered(2000)
+        coEvery { userProjector.handleUserRegistered(any(), any()) } coAnswers {
+            val u1 = UserEntity()
+            userRepository.save(u1)
+        }
+
+        assertThrows<DataIntegrityViolationException> { eventStorePublisher.publish(event) }
+
+        assertEquals(true, eventsDao.isNoEvents())
+        coVerify(exactly = 1) { userProjector.handleUserRegistered(any(), any()) }
+    }
+
+    @Test
     fun `exception in projector rollbacks transaction`() = runBlocking {
         assertEquals(true, eventsDao.isNoEvents())
         val event = userRegistered(2000)
         coEvery { userProjector.handleUserRegistered(any(), any()) } throws IllegalStateException("error simulation")
 
-        assertThrows<DataAccessException> { eventStorePublisher.publish(event) }
+        assertThrows<InvocationTargetException> { eventStorePublisher.publish(event) }
 
         assertEquals(true, eventsDao.isNoEvents())
         coVerify(exactly = 1) { userProjector.handleUserRegistered(any(), any()) }
@@ -116,9 +136,9 @@ class TransactionIntegrationTests {
         )
         coEvery { userProjector.handleUserRegistered(event2, any()) } throws IllegalStateException("error simulation")
 
-        assertThrows<DataAccessException> { eventStorePublisher.publish(events) }
+        assertThrows<InvocationTargetException> { eventStorePublisher.publish(events) }
 
-        val eventsCount = jdbcDb.fetchCount(EVENTS)
+        val eventsCount = eventsDao.eventsCount()
         assertEquals(1, eventsCount)
         coVerify(exactly = 2) { userProjector.handleUserRegistered(any(), any()) }
     }

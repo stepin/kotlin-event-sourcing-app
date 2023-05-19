@@ -22,7 +22,9 @@ class EventMapper(
     /**
      * For save operation.
      */
-    fun toRecord(eventsRecord: EventsRecord, event: DomainEvent, meta: EventMetadata) {
+    fun toRecord(event: DomainEvent, meta: EventMetadata): EventsRecord {
+        val eventsRecord = EventsRecord()
+
         eventsRecord.guid = event.guid
         eventsRecord.accountGuid = event.accountGuid
         eventsRecord.aggregator = event.aggregatorType
@@ -37,6 +39,8 @@ class EventMapper(
         val bodyStr = objectMapper.writeValueAsString(event)
         val body = JSONB.valueOf(bodyStr)
         eventsRecord.body = body
+
+        return eventsRecord
     }
 
     /**

@@ -60,7 +60,6 @@ dependencies {
     // Postgres
     implementation("org.postgresql:postgresql")
     implementation("org.postgresql:r2dbc-postgresql")
-    implementation("org.springframework:spring-jdbc")
     implementation("org.flywaydb:flyway-core")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq-kotlin")
@@ -114,14 +113,15 @@ tasks.withType<Test> {
 val cfg: Map<String, Map<String, Map<String, String>>> = Yaml().load(
     File("src/main/resources/application.yml").bufferedReader(),
 )
-val jdbcCfg: Map<String, String> = cfg["spring"]?.get("datasource") ?: emptyMap()
 val r2dbcCfg: Map<String, String> = cfg["spring"]?.get("r2dbc") ?: emptyMap()
+val jdbcUrl = r2dbcCfg["url"]?.replace("r2dbc", "jdbc")
 
 flyway {
-    url = r2dbcCfg["url"]
+    url = jdbcUrl
     user = r2dbcCfg["username"]
     password = r2dbcCfg["password"]
     schemas = arrayOf("public")
+    cleanDisabled = false
 }
 
 jooq {
@@ -131,9 +131,9 @@ jooq {
                 logging = Logging.WARN
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    url = jdbcCfg["url"]
-                    user = jdbcCfg["username"]
-                    password = jdbcCfg["password"]
+                    url = jdbcUrl
+                    user = r2dbcCfg["username"]
+                    password = r2dbcCfg["password"]
                 }
                 generator.apply {
                     name = "org.jooq.codegen.KotlinGenerator"

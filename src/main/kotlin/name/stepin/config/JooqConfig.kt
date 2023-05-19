@@ -1,7 +1,7 @@
 package name.stepin.config
 
-import com.zaxxer.hikari.HikariDataSource
-import org.jooq.*
+import io.r2dbc.spi.ConnectionFactory
+import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,8 +12,5 @@ class JooqConfig {
 
     @Primary
     @Bean
-    fun dslContext(r2dbcConfig: R2dbcConfig) = DSL.using(r2dbcConfig.connectionFactory(), SQLDialect.POSTGRES)
-
-    @Bean("jdbcDb")
-    fun jdbcDslContext(dataSource: HikariDataSource): DSLContext = DSL.using(dataSource, SQLDialect.POSTGRES)
+    fun dslContext(connectionFactory: ConnectionFactory) = DSL.using(connectionFactory, SQLDialect.POSTGRES)
 }

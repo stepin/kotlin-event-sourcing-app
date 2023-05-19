@@ -28,9 +28,6 @@ ExecStart=/usr/bin/podman run \
 	-e SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/kotlin-bootstrap-app_dev \
 	-e SPRING_R2DBC_USERNAME=kotlin-bootstrap-app \
 	-e SPRING_R2DBC_PASSWORD=SomeP2assword!@e \
-	-e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kotlin-bootstrap-app_dev \
-	-e SPRING_DATASOURCE_USERNAME=kotlin-bootstrap-app \
-	-e SPRING_DATASOURCE_PASSWORD=SomeP2assword!@e \
 	-e IMAGES_PATH=/data/kotlin-bootstrap-app-images \
 	-v /data/kotlin-bootstrap-app-images/:/data stepin/kotlin-bootstrap-app
 ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id

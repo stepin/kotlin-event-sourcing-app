@@ -1,6 +1,8 @@
 package name.stepin.db.dao
 
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import name.stepin.db.sql.tables.records.EventsRecord
 import name.stepin.db.sql.tables.references.EVENTS
@@ -8,6 +10,7 @@ import name.stepin.es.store.AccountGuid
 import name.stepin.fixture.PostgresFactory.dslContext
 import name.stepin.fixture.PostgresFactory.initDb
 import name.stepin.fixture.PostgresFactory.postgres
+import name.stepin.utils.coInsert
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.impl.DSL
@@ -23,7 +26,6 @@ import java.util.*
 @Testcontainers
 class EventDaoTest {
     private lateinit var db: DSLContext
-    private lateinit var jdbcContext: DSLContext
     private lateinit var dao: EventDao
     private lateinit var firstGuid: UUID
 
@@ -45,22 +47,21 @@ class EventDaoTest {
     }
 
     @BeforeEach
-    fun setUp() {
+    fun setUp() = runBlocking {
         db = dslContext(postgres)
-        jdbcContext = dslContext(postgres)
 
-        dao = EventDao(db, jdbcContext)
+        dao = EventDao(db)
         firstGuid = UUID.randomUUID()
         initDb()
     }
 
-    private fun initDb() {
-        db.delete(EVENTS).execute()
+    private suspend fun initDb() {
+        db.delete(EVENTS).awaitFirst()
         createEvent(1)
         createEvent(2)
     }
 
-    private fun createEvent(
+    private suspend fun createEvent(
         id: Long,
         accountGuid: AccountGuid = UUID.randomUUID(),
         aggregator: String = "user",
@@ -68,7 +69,7 @@ class EventDaoTest {
         type: String? = null,
     ) {
         val e = createEventRecord(id, accountGuid, aggregator, aggregatorGuid, type)
-        e.store()
+        db.coInsert(e)
     }
 
     private fun createEventRecord(
@@ -78,7 +79,7 @@ class EventDaoTest {
         aggregatorGuid: UUID = UUID.randomUUID(),
         type: String? = null,
     ): EventsRecord {
-        val e = dao.newRecord()
+        val e = EventsRecord()
         e.id = id
         e.guid = if (id == 1L) firstGuid else UUID.randomUUID()
         e.accountGuid = accountGuid
@@ -94,10 +95,10 @@ class EventDaoTest {
     }
 
     @Test
-    fun `newRecord main case`() {
+    fun `newRecord main case`() = runBlocking {
         val e = createEventRecord(100)
 
-        val actual = e.insert()
+        val actual = db.coInsert(e)
 
         assertEquals(1, actual)
         assertNotEquals(null, e.id)
@@ -124,7 +125,7 @@ class EventDaoTest {
 
     @Test
     fun `isNoEvents true case`() = runBlocking {
-        db.delete(EVENTS).execute()
+        db.delete(EVENTS).awaitFirstOrNull()
 
         val actual = dao.isNoEvents()
 

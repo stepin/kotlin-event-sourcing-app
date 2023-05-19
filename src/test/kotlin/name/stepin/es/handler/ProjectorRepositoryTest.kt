@@ -5,8 +5,9 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.runBlocking
 import name.stepin.config.EventSourcingConfig
+import name.stepin.domain.account.projector.AccountCreatedProjector
 import name.stepin.domain.user.event.UserRegistered
-import name.stepin.domain.user.reactor.UserRegisteredEmailReactor
+import name.stepin.domain.user.projector.UserProjector
 import name.stepin.es.store.EventMetadata
 import name.stepin.fixture.EventsFactory.userRegistered
 import org.apache.logging.log4j.kotlin.Logging
@@ -18,8 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ApplicationContext
 
 @ExtendWith(MockKExtension::class)
-class HandlerRepositoryTest {
-    private lateinit var service: ReactorRepository
+class ProjectorRepositoryTest {
+    private lateinit var service: ProjectorRepository
 
     private val reflectionHelper = ReflectionHelper(
         EventSourcingConfig(
@@ -33,7 +34,7 @@ class HandlerRepositoryTest {
 
     @BeforeEach
     fun setUp() {
-        service = ReactorRepository(reflectionHelper, applicationContext)
+        service = ProjectorRepository(reflectionHelper, applicationContext)
     }
 
     @AfterEach
@@ -53,30 +54,33 @@ class HandlerRepositoryTest {
     fun `process main case`() = runBlocking {
         val event = userRegistered(1)
         val meta = EventMetadata()
-        val processorMock = mockk<UserRegisteredEmailReactor>()
-        val processorMock2 = mockk<TestReactor>()
-        every { applicationContext.getBean(UserRegisteredEmailReactor::class.java) } returns processorMock
-        every { applicationContext.getBean(TestReactor::class.java) } returns processorMock2
-        coEvery { processorMock.handle(event) } returns Unit
-        coEvery { processorMock2.handle(event, meta) } returns Unit
+        val processorMock = mockk<UserProjector>()
+        val processorMock2 = mockk<TestProjector>()
+        val processorMock3 = mockk<AccountCreatedProjector>()
+        every { applicationContext.getBean(UserProjector::class.java) } returns processorMock
+        every { applicationContext.getBean(TestProjector::class.java) } returns processorMock2
+        every { applicationContext.getBean(AccountCreatedProjector::class.java) } returns processorMock3
+        coEvery { processorMock.handleUserRegistered(event, meta) } returns Unit
+        coEvery { processorMock2.handle(event) } returns Unit
 
         service.init()
         service.process(event, meta)
 
-        verify(exactly = 1) { applicationContext.getBean(UserRegisteredEmailReactor::class.java) }
-        verify(exactly = 1) { applicationContext.getBean(TestReactor::class.java) }
-        coVerify(exactly = 1) { processorMock.handle(event) }
-        coVerify(exactly = 1) { processorMock2.handle(event, meta) }
+        verify(exactly = 3) { applicationContext.getBean(UserProjector::class.java) }
+        verify(exactly = 1) { applicationContext.getBean(TestProjector::class.java) }
+        verify(exactly = 1) { applicationContext.getBean(AccountCreatedProjector::class.java) }
+        coVerify(exactly = 1) { processorMock.handleUserRegistered(event, meta) }
+        coVerify(exactly = 1) { processorMock2.handle(event) }
     }
 }
 
 @Suppress("unused")
-class TestReactor {
+class TestProjector {
     companion object : Logging
 
     @Suppress("RedundantSuspendModifier", "UNUSED_PARAMETER")
-    @Reactor
-    suspend fun handle(e: UserRegistered, meta: EventMetadata) {
+    @Projector
+    suspend fun handle(e: UserRegistered) {
         // nothing to do
     }
 }

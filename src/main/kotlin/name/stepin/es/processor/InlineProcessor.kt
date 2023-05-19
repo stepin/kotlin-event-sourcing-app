@@ -11,7 +11,6 @@ import name.stepin.es.store.EventMetadata
 import name.stepin.es.store.EventStoreReader
 import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.stereotype.Service
-import java.lang.reflect.InvocationTargetException
 
 @Service
 class InlineProcessor(
@@ -53,13 +52,7 @@ class InlineProcessor(
         projectors.process(event, meta)
         // NOTE: built-in reactors in general use projection as state. So, order of projections/reactors is important.
         if (!skipReactor) {
-            try {
-                reactors.process(event, meta)
-            } catch (e: RuntimeException) {
-                logger.error("reactor runtime error $event $meta", e)
-            } catch (e: InvocationTargetException) {
-                logger.error("reactor target error $event $meta", e)
-            }
+            reactors.process(event, meta)
         }
 
         meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType))).increment()

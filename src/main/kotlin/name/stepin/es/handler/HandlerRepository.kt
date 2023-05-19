@@ -19,9 +19,8 @@ abstract class HandlerRepository(
         val withMeta: Boolean,
     )
 
-    private val map: MutableMap<String, MutableList<HandlerFunc>> = HashMap()
+    protected val map: MutableMap<String, MutableList<HandlerFunc>> = HashMap()
     private val processorType: String = processorAnnotation.simpleName!!
-    private val processorTypeLowercase: String = processorAnnotation.simpleName!!.lowercase()
 
     protected fun initProcessor() {
         val classToEvent = reflectionHelper.classToEvent()
@@ -47,19 +46,5 @@ abstract class HandlerRepository(
         }
     }
 
-    suspend fun process(event: DomainEvent, meta: EventMetadata) {
-        val eventClass = event.javaClass.canonicalName
-        val processors = map[eventClass]
-        if (processors.isNullOrEmpty()) {
-            logger.info { "No ${processorTypeLowercase}s for $eventClass" }
-            return
-        }
-        for ((processor, methodName, withMeta) in processors) {
-            if (withMeta) {
-                processor.invokeSuspendFunction(methodName, event, meta)
-            } else {
-                processor.invokeSuspendFunction(methodName, event)
-            }
-        }
-    }
+    abstract suspend fun process(event: DomainEvent, meta: EventMetadata)
 }

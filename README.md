@@ -20,10 +20,10 @@
 
 ```kotlin
 data class User(
-  displayName: String,
-  firstName: String,
-  seconfName: String,
-  email: String
+  val displayName: String,
+  val firstName: String,
+  val seconfName: String,
+  val email: String
 )
 ```
 

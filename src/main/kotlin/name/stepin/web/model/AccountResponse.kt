@@ -6,8 +6,9 @@ class AccountResponse(
     val name: String,
 ) {
     companion object {
-        fun from(entity: AccountEntity) = AccountResponse(
-            name = entity.name,
-        )
+        fun from(entity: AccountEntity) =
+            AccountResponse(
+                name = entity.name,
+            )
     }
 }

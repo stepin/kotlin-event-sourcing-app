@@ -14,7 +14,6 @@ class RegisterUser(
     private val store: EventStorePublisher,
     private val userRepository: UserRepository,
 ) {
-
     data class Params(
         val email: String,
         val firstName: String?,
@@ -24,35 +23,39 @@ class RegisterUser(
 
     sealed class Response {
         data class Created(val userGuid: UUID) : Response()
+
         data class Error(val errorCode: ErrorCode) : Response()
     }
 
-    suspend fun execute(params: Params): Response = with(params) {
-        val user = userRepository.findByEmail(email)
-        if (user != null) {
-            return Response.Error(ErrorCode.USER_ALREADY_REGISTERED)
+    suspend fun execute(params: Params): Response =
+        with(params) {
+            val user = userRepository.findByEmail(email)
+            if (user != null) {
+                return Response.Error(ErrorCode.USER_ALREADY_REGISTERED)
+            }
+
+            val accountGuid = UUID.randomUUID()
+            val userGuid = UUID.randomUUID()
+
+            val userRegistered =
+                UserRegistered(
+                    accountGuid = accountGuid,
+                    aggregatorGuid = userGuid,
+                    email = email,
+                    firstName = firstName,
+                    secondName = secondName,
+                    displayName = displayName ?: calcDisplayName(email, firstName, secondName),
+                )
+            store.publish(userRegistered)
+
+            val accountCreated =
+                AccountCreated(
+                    name = "Неизвестная компания",
+                    accountGuid = accountGuid,
+                    userGuid = userGuid,
+                )
+            store.publish(accountCreated)
+
+            return Response.Created(userGuid)
         }
-
-        val accountGuid = UUID.randomUUID()
-        val userGuid = UUID.randomUUID()
-
-        val userRegistered = UserRegistered(
-            accountGuid = accountGuid,
-            aggregatorGuid = userGuid,
-            email = email,
-            firstName = firstName,
-            secondName = secondName,
-            displayName = displayName ?: calcDisplayName(email, firstName, secondName),
-        )
-        store.publish(userRegistered)
-
-        val accountCreated = AccountCreated(
-            name = "Неизвестная компания",
-            accountGuid = accountGuid,
-            userGuid = userGuid,
-        )
-        store.publish(accountCreated)
-
-        return Response.Created(userGuid)
-    }
 }

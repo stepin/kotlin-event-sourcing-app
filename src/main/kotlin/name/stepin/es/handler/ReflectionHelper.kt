@@ -40,7 +40,10 @@ class ReflectionHelper(
         return reflections.getMethodsAnnotatedWith(processorAnnotation.java)
     }
 
-    fun checkHandlerMethod(method: Method, classToEvent: Map<Class<*>, String>): Pair<Class<*>, Boolean> {
+    fun checkHandlerMethod(
+        method: Method,
+        classToEvent: Map<Class<*>, String>,
+    ): Pair<Class<*>, Boolean> {
         val paramsCount = method.parameterTypes.size
         if (paramsCount != 2 && paramsCount != 3) {
             throw IllegalStateException("Incorrect number of params for handler function $method")

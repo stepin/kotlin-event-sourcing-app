@@ -1,6 +1,10 @@
 package name.stepin.domain.user.model
 
-fun calcDisplayName(email: String, firstName: String?, lastName: String?): String {
+fun calcDisplayName(
+    email: String,
+    firstName: String?,
+    lastName: String?,
+): String {
     if (firstName == null && lastName == null) {
         return email
     }

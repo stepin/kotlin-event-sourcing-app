@@ -39,86 +39,95 @@ class UpdateUserInformationTest {
     }
 
     @Test
-    fun `not found case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val params = UpdateUserInformation.Params(
-            userGuid = userGuid,
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "displayName1",
-        )
-        coEvery { userRepository.findByGuid(userGuid) } returns null
-
-        val actual = command.execute(params)
-
-        assertEquals(ErrorCode.USER_NOT_FOUND, actual)
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-    }
-
-    @Test
-    fun `nothing changed case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val accountGuid = UUID.randomUUID()
-        val userEntity = UserEntityFactory.userEntity(1).apply {
-            this.accountGuid = accountGuid
-            this.guid = userGuid
-        }
-        val params = UpdateUserInformation.Params(
-            userGuid = userGuid,
-            firstName = userEntity.firstName,
-            secondName = userEntity.secondName,
-            displayName = userEntity.displayName,
-        )
-
-        mockkStatic(UUID::class, LocalDateTime::class) {
-            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+    fun `not found case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val params =
+                UpdateUserInformation.Params(
+                    userGuid = userGuid,
+                    firstName = "firstName1",
+                    secondName = "secondName1",
+                    displayName = "displayName1",
+                )
+            coEvery { userRepository.findByGuid(userGuid) } returns null
 
             val actual = command.execute(params)
 
-            assertNull(actual)
+            assertEquals(ErrorCode.USER_NOT_FOUND, actual)
             coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
         }
-    }
 
     @Test
-    fun `everything changed case`() = runBlocking {
-        val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
-        val eventGuid = UUID.randomUUID()
-        val userGuid = UUID.randomUUID()
-        val accountGuid = UUID.randomUUID()
-        val userEntity = UserEntityFactory.userEntity(1).apply {
-            this.accountGuid = accountGuid
-            this.guid = userGuid
+    fun `nothing changed case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val accountGuid = UUID.randomUUID()
+            val userEntity =
+                UserEntityFactory.userEntity(1).apply {
+                    this.accountGuid = accountGuid
+                    this.guid = userGuid
+                }
+            val params =
+                UpdateUserInformation.Params(
+                    userGuid = userGuid,
+                    firstName = userEntity.firstName,
+                    secondName = userEntity.secondName,
+                    displayName = userEntity.displayName,
+                )
+
+            mockkStatic(UUID::class, LocalDateTime::class) {
+                coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+
+                val actual = command.execute(params)
+
+                assertNull(actual)
+                coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+            }
         }
-        val event = UserMetaUpdated(
-            aggregatorGuid = userGuid,
-            accountGuid = accountGuid,
-            guid = eventGuid,
-            firstName = "firstName2",
-            secondName = "secondName2",
-            displayName = "displayName2",
-        )
-        val meta = EventMetadata(createdAt = createdAt)
-        val params = UpdateUserInformation.Params(
-            userGuid = userGuid,
-            firstName = "firstName2",
-            secondName = "secondName2",
-            displayName = "displayName2",
-        )
 
-        mockkStatic(UUID::class, LocalDateTime::class) {
-            every { UUID.randomUUID() } returns eventGuid
-            every { LocalDateTime.now() } returns createdAt
-            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
-            coEvery { store.publish(event, meta, false) } returns userGuid
+    @Test
+    fun `everything changed case`() =
+        runBlocking {
+            val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
+            val eventGuid = UUID.randomUUID()
+            val userGuid = UUID.randomUUID()
+            val accountGuid = UUID.randomUUID()
+            val userEntity =
+                UserEntityFactory.userEntity(1).apply {
+                    this.accountGuid = accountGuid
+                    this.guid = userGuid
+                }
+            val event =
+                UserMetaUpdated(
+                    aggregatorGuid = userGuid,
+                    accountGuid = accountGuid,
+                    guid = eventGuid,
+                    firstName = "firstName2",
+                    secondName = "secondName2",
+                    displayName = "displayName2",
+                )
+            val meta = EventMetadata(createdAt = createdAt)
+            val params =
+                UpdateUserInformation.Params(
+                    userGuid = userGuid,
+                    firstName = "firstName2",
+                    secondName = "secondName2",
+                    displayName = "displayName2",
+                )
 
-            val actual = command.execute(params)
+            mockkStatic(UUID::class, LocalDateTime::class) {
+                every { UUID.randomUUID() } returns eventGuid
+                every { LocalDateTime.now() } returns createdAt
+                coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+                coEvery { store.publish(event, meta, false) } returns userGuid
 
-            assertNull(actual)
-            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-            coVerify(exactly = 1) { store.publish(event, meta, false) }
-            verify(exactly = 1) { UUID.randomUUID() }
-            verify(exactly = 1) { LocalDateTime.now() }
+                val actual = command.execute(params)
+
+                assertNull(actual)
+                coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+                coVerify(exactly = 1) { store.publish(event, meta, false) }
+                verify(exactly = 1) { UUID.randomUUID() }
+                verify(exactly = 1) { LocalDateTime.now() }
+            }
         }
-    }
 }

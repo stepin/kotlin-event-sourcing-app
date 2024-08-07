@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class UserExtensionsKtTest {
-
     @Test
     fun `calcDisplayName firstName and secondName are null`() {
         val actual = calcDisplayName("email1@example.com", null, null)

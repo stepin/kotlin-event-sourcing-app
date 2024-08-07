@@ -48,9 +48,10 @@ class DatetimeScalarTest {
 
     @Test
     fun `parseValue date parsing error case`() {
-        val exception = assertThrows<CoercingParseValueException> {
-            datetimeType.coercing.parseValue("Not a date string")
-        }
+        val exception =
+            assertThrows<CoercingParseValueException> {
+                datetimeType.coercing.parseValue("Not a date string")
+            }
 
         assertEquals("Not a valid datetime: 'Not a date string'.", exception.message)
     }
@@ -75,9 +76,10 @@ class DatetimeScalarTest {
 
     @Test
     fun `parseLiteral date parsing error case`() {
-        val exception = assertThrows<CoercingParseLiteralException> {
-            datetimeType.coercing.parseLiteral(StringValue("Not a date string"))
-        }
+        val exception =
+            assertThrows<CoercingParseLiteralException> {
+                datetimeType.coercing.parseLiteral(StringValue("Not a date string"))
+            }
 
         assertEquals("Not a valid datetime: 'Not a date string'.", exception.message)
     }

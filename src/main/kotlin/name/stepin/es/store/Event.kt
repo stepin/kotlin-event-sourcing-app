@@ -51,17 +51,14 @@ data class EventMetadata(
      * Null means that event were created by the system (like timer).
      */
     val creatorGuid: UserGuid = SYSTEM_GUID,
-
     /**
      * Timezone is UTC.
      */
     val createdAt: LocalDateTime = LocalDateTime.now(),
-
     /**
      * Any human-readable text.
      */
     val comment: String = "",
-
     /**
      * Skip event for technical reason.
      */

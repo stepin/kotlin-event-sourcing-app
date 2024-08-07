@@ -11,7 +11,6 @@ import org.junit.jupiter.api.assertThrows
 import java.lang.reflect.Method
 
 class ReflectionHelperTest {
-
     private lateinit var helper: ReflectionHelper
 
     @BeforeEach
@@ -103,10 +102,11 @@ class ReflectionHelperTest {
     @Test
     fun `checkHandlerMethod 2 params correct function`() {
         val method = getMethodByName("correct1")
-        val eventsMap: Map<Class<*>, String> = mapOf(
-            UserRegistered::class.java to "UserRegistered",
-            AccountCreated::class.java to "AccountCreated",
-        )
+        val eventsMap: Map<Class<*>, String> =
+            mapOf(
+                UserRegistered::class.java to "UserRegistered",
+                AccountCreated::class.java to "AccountCreated",
+            )
 
         val (actualClass, actualWithMete) = helper.checkHandlerMethod(method, eventsMap)
 
@@ -117,10 +117,11 @@ class ReflectionHelperTest {
     @Test
     fun `checkHandlerMethod 3 params correct function`() {
         val method = getMethodByName("correct2")
-        val eventsMap: Map<Class<*>, String> = mapOf(
-            UserRegistered::class.java to "UserRegistered",
-            AccountCreated::class.java to "AccountCreated",
-        )
+        val eventsMap: Map<Class<*>, String> =
+            mapOf(
+                UserRegistered::class.java to "UserRegistered",
+                AccountCreated::class.java to "AccountCreated",
+            )
 
         val (actualClass, actualWithMete) = helper.checkHandlerMethod(method, eventsMap)
 
@@ -135,28 +136,44 @@ class ReflectionHelperTest {
 
 @Suppress("unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 internal class TestClass {
-
     fun noArgs() {
     }
 
-    fun notSuspend2args(a: Int, b: Int) {
+    fun notSuspend2args(
+        a: Int,
+        b: Int,
+    ) {
     }
 
-    fun notMeta3args(a: Int, b: Int, c: Int) {
+    fun notMeta3args(
+        a: Int,
+        b: Int,
+        c: Int,
+    ) {
     }
 
-    fun notSuspend3args(a: Int, meta: EventMetadata, c: Int) {
+    fun notSuspend3args(
+        a: Int,
+        meta: EventMetadata,
+        c: Int,
+    ) {
     }
 
     suspend fun notEvent1(a: Int) {
     }
 
-    suspend fun notEvent2(a: Int, meta: EventMetadata) {
+    suspend fun notEvent2(
+        a: Int,
+        meta: EventMetadata,
+    ) {
     }
 
     suspend fun correct1(event: UserRegistered) {
     }
 
-    suspend fun correct2(event: AccountCreated, meta: EventMetadata) {
+    suspend fun correct2(
+        event: AccountCreated,
+        meta: EventMetadata,
+    ) {
     }
 }

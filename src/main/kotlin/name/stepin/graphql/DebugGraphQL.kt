@@ -26,13 +26,17 @@ class DebugGraphQL(
     }
 
     @QueryMapping
-    suspend fun usersSince(@Argument date: LocalDateTime): List<UserResult> {
+    suspend fun usersSince(
+        @Argument date: LocalDateTime,
+    ): List<UserResult> {
         logger.info("usersSince")
         return debugService.getUsersSince(date).map { UserResult.from(it) }
     }
 
     @QueryMapping
-    suspend fun userAudit(@Argument userGuid: UUID): List<String> {
+    suspend fun userAudit(
+        @Argument userGuid: UUID,
+    ): List<String> {
         logger.info("userAudit")
         // NOTE: flow is not supported by Spring Boot GraphQL
         return debugService.getUserAudit(userGuid).toList()

@@ -9,16 +9,21 @@ class SendEmailService(
     private val service: ExternalMailService,
     private val appConfig: AppConfig,
 ) {
-    suspend fun sendEmailConfirmationEmail(name: String, email: String, token: String) {
+    suspend fun sendEmailConfirmationEmail(
+        name: String,
+        email: String,
+        token: String,
+    ) {
         val displayName = name.ifBlank { "Пользователь" }
         val subject = "Спасибо за регистрацию!"
-        val text = """
-               Здравствуйте, $displayName!
+        val text =
+            """
+            Здравствуйте, $displayName!
 
-               Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
+            Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
 
-               ${appConfig.baseUrl}/welcome
-        """.trimIndent()
+            ${appConfig.baseUrl}/welcome
+            """.trimIndent()
         service.sendEmail(displayName, email, subject, text)
     }
 }

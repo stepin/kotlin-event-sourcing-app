@@ -14,8 +14,10 @@ class EventStorePublisherImpl(
     private val db: DSLContext,
     private val inlineProcessor: InlineProcessor,
 ) : EventStorePublisher {
-
-    override suspend fun publish(events: List<DomainEventWithMeta>, skipReactor: Boolean): List<UUID> {
+    override suspend fun publish(
+        events: List<DomainEventWithMeta>,
+        skipReactor: Boolean,
+    ): List<UUID> {
         val ids = ArrayList<UUID>(events.size)
         for (event in events) {
             val id = publish(event.first, event.second, skipReactor)
@@ -27,7 +29,11 @@ class EventStorePublisherImpl(
     /**
      * Return id can be used in queries to wait until read model is consistent.
      */
-    override suspend fun publish(event: DomainEvent, meta: EventMetadata, skipReactor: Boolean): UUID {
+    override suspend fun publish(
+        event: DomainEvent,
+        meta: EventMetadata,
+        skipReactor: Boolean,
+    ): UUID {
         return db.transactionPublisher { config ->
             mono {
                 val dsl = config.dsl()

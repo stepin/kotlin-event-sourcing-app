@@ -6,11 +6,11 @@ data class UserResult(
     val name: String,
     val email: String,
 ) {
-
     companion object {
-        fun from(entity: UserEntity) = UserResult(
-            name = entity.displayName ?: "<none>",
-            email = entity.email,
-        )
+        fun from(entity: UserEntity) =
+            UserResult(
+                name = entity.displayName ?: "<none>",
+                email = entity.email,
+            )
     }
 }

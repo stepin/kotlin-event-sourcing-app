@@ -23,7 +23,6 @@ import java.util.*
 @ExtendWith(MockKExtension::class)
 @WebFluxTest(controllers = [AppController::class])
 class AppControllerTest {
-
     @MockkBean
     private lateinit var registerUser: RegisterUser
 
@@ -43,30 +42,33 @@ class AppControllerTest {
 
     @Test
     fun `registerUser user already registered case`() {
-        val params = RegisterUser.Params(
-            email = "corey.kent@example.com",
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "displayName1",
-        )
+        val params =
+            RegisterUser.Params(
+                email = "corey.kent@example.com",
+                firstName = "firstName1",
+                secondName = "secondName1",
+                displayName = "displayName1",
+            )
         coEvery { registerUser.execute(params) } returns RegisterUser.Response.Error(ErrorCode.USER_ALREADY_REGISTERED)
 
         @Language("JSON")
-        val body = """
+        val body =
+            """
             {
             "email": "corey.kent@example.com",
             "firstName": "firstName1",
             "secondName": "secondName1",
             "displayName": "displayName1"
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val response = client.post()
-            .uri("/api/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.post()
+                .uri("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().is5xxServerError
@@ -84,38 +86,41 @@ class AppControllerTest {
 
     @Test
     fun `registerUser success case`() {
-        val params = RegisterUser.Params(
-            email = "corey.kent@example.com",
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "displayName1",
-        )
+        val params =
+            RegisterUser.Params(
+                email = "corey.kent@example.com",
+                firstName = "firstName1",
+                secondName = "secondName1",
+                displayName = "displayName1",
+            )
         val userGuid = UUID.randomUUID()
         coEvery { registerUser.execute(params) } returns RegisterUser.Response.Created(userGuid)
 
         @Language("JSON")
-        val body = """
+        val body =
+            """
             {
             "email": "corey.kent@example.com",
             "firstName": "firstName1",
             "secondName": "secondName1",
             "displayName": "displayName1"
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val response = client.post()
-            .uri("/api/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.post()
+                .uri("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().isOk
             .expectBody()
             .json(
                 """
-               "$userGuid"
+                "$userGuid"
                 """.trimIndent(),
             )
         coVerify(exactly = 1) { registerUser.execute(params) }
@@ -124,27 +129,30 @@ class AppControllerTest {
     @Test
     fun `updateUserInformation success case`() {
         val userGuid = UUID.randomUUID()
-        val params = UpdateUserInformation.Params(
-            userGuid = userGuid,
-            firstName = "firstName2",
-            secondName = null,
-            displayName = null,
-        )
+        val params =
+            UpdateUserInformation.Params(
+                userGuid = userGuid,
+                firstName = "firstName2",
+                secondName = null,
+                displayName = null,
+            )
         coEvery { updateUserInformation.execute(params) } returns null
 
         @Language("JSON")
-        val body = """
+        val body =
+            """
             {
             "firstName": "firstName2"
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val response = client.post()
-            .uri("/api/users/$userGuid")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.post()
+                .uri("/api/users/$userGuid")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().isOk
@@ -156,10 +164,11 @@ class AppControllerTest {
         val userGuid = UUID.randomUUID()
         coEvery { removeUser.execute(userGuid) } returns null
 
-        val response = client.delete()
-            .uri("/api/users/$userGuid")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.delete()
+                .uri("/api/users/$userGuid")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().isOk

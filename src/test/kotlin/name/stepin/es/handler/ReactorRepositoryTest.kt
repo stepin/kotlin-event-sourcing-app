@@ -21,12 +21,13 @@ import org.springframework.context.ApplicationContext
 class ReactorRepositoryTest {
     private lateinit var service: ReactorRepository
 
-    private val reflectionHelper = ReflectionHelper(
-        EventSourcingConfig(
-            eventsPackage = "name.stepin",
-            processorsPackage = "name.stepin",
-        ),
-    )
+    private val reflectionHelper =
+        ReflectionHelper(
+            EventSourcingConfig(
+                eventsPackage = "name.stepin",
+                processorsPackage = "name.stepin",
+            ),
+        )
 
     @MockK
     lateinit var applicationContext: ApplicationContext
@@ -42,32 +43,34 @@ class ReactorRepositoryTest {
     }
 
     @Test
-    fun `process no processors case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
+    fun `process no processors case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
 
-        service.process(event, meta)
-    }
+            service.process(event, meta)
+        }
 
     @Test
-    fun `process main case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        val processorMock = mockk<UserRegisteredEmailReactor>()
-        val processorMock2 = mockk<TestReactor>()
-        every { applicationContext.getBean(UserRegisteredEmailReactor::class.java) } returns processorMock
-        every { applicationContext.getBean(TestReactor::class.java) } returns processorMock2
-        coEvery { processorMock.handle(event) } returns Unit
-        coEvery { processorMock2.handle(event, meta) } returns Unit
+    fun `process main case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            val processorMock = mockk<UserRegisteredEmailReactor>()
+            val processorMock2 = mockk<TestReactor>()
+            every { applicationContext.getBean(UserRegisteredEmailReactor::class.java) } returns processorMock
+            every { applicationContext.getBean(TestReactor::class.java) } returns processorMock2
+            coEvery { processorMock.handle(event) } returns Unit
+            coEvery { processorMock2.handle(event, meta) } returns Unit
 
-        service.init()
-        service.process(event, meta)
+            service.init()
+            service.process(event, meta)
 
-        verify(exactly = 1) { applicationContext.getBean(UserRegisteredEmailReactor::class.java) }
-        verify(exactly = 1) { applicationContext.getBean(TestReactor::class.java) }
-        coVerify(exactly = 1) { processorMock.handle(event) }
-        coVerify(exactly = 1) { processorMock2.handle(event, meta) }
-    }
+            verify(exactly = 1) { applicationContext.getBean(UserRegisteredEmailReactor::class.java) }
+            verify(exactly = 1) { applicationContext.getBean(TestReactor::class.java) }
+            coVerify(exactly = 1) { processorMock.handle(event) }
+            coVerify(exactly = 1) { processorMock2.handle(event, meta) }
+        }
 }
 
 @Suppress("unused")
@@ -76,7 +79,10 @@ class TestReactor {
 
     @Suppress("RedundantSuspendModifier", "UNUSED_PARAMETER")
     @Reactor
-    suspend fun handle(e: UserRegistered, meta: EventMetadata) {
+    suspend fun handle(
+        e: UserRegistered,
+        meta: EventMetadata,
+    ) {
         // nothing to do
     }
 }

@@ -17,7 +17,6 @@ class EventStoreReaderImpl(
     private val eventMapper: EventMapper,
     private val eventDao: EventDao,
 ) : EventStoreReader {
-
     override fun <T : DomainEvent> findEventsSinceId(
         eventIdFrom: Long,
         aggregator: String?,
@@ -48,14 +47,16 @@ class EventStoreReaderImpl(
         accountGuid: AccountGuid?,
         eventTypes: List<String>?,
         maxBatchSize: Int?,
-    ): Flow<DomainEventWithIdAndMeta<T>> = flow {
-        val id = eventDao.byGuid(eventGuidFrom)?.id
-            ?: throw EntityNotFoundException()
+    ): Flow<DomainEventWithIdAndMeta<T>> =
+        flow {
+            val id =
+                eventDao.byGuid(eventGuidFrom)?.id
+                    ?: throw EntityNotFoundException()
 
-        return@flow emitAll(
-            findEventsSinceId(id, aggregator, aggregatorGuid, accountGuid, eventTypes, maxBatchSize),
-        )
-    }
+            return@flow emitAll(
+                findEventsSinceId(id, aggregator, aggregatorGuid, accountGuid, eventTypes, maxBatchSize),
+            )
+        }
 
     override fun <T : DomainEvent> findEventsSinceDate(
         date: LocalDateTime,

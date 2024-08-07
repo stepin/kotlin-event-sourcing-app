@@ -39,30 +39,33 @@ class Seed(
         val accountGuid = UUID.randomUUID()
         val userGuid = UUID.randomUUID()
 
-        val userRegistered = UserRegistered(
-            accountGuid = accountGuid,
-            aggregatorGuid = userGuid,
-            email = "test@example.com",
-            displayName = "Иваныч",
-            firstName = "Иван",
-            secondName = "Иванов",
-        )
+        val userRegistered =
+            UserRegistered(
+                accountGuid = accountGuid,
+                aggregatorGuid = userGuid,
+                email = "test@example.com",
+                displayName = "Иваныч",
+                firstName = "Иван",
+                secondName = "Иванов",
+            )
         r.add(userRegistered to meta)
 
-        val accountCreated = AccountCreated(
-            name = "test",
-            accountGuid = accountGuid,
-            userGuid = userGuid,
-        )
+        val accountCreated =
+            AccountCreated(
+                name = "test",
+                accountGuid = accountGuid,
+                userGuid = userGuid,
+            )
         r.add(accountCreated to meta)
 
-        val nameChanged = UserMetaUpdated(
-            accountGuid = accountGuid,
-            aggregatorGuid = userGuid,
-            firstName = "firstName2",
-            secondName = null,
-            displayName = null,
-        )
+        val nameChanged =
+            UserMetaUpdated(
+                accountGuid = accountGuid,
+                aggregatorGuid = userGuid,
+                firstName = "firstName2",
+                secondName = null,
+                displayName = null,
+            )
         r.add(nameChanged to meta)
 
         return r

@@ -24,9 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(MockKExtension::class)
 class EventMapperTest {
     private lateinit var service: EventMapper
-    private val objectMapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).apply {
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    }
+    private val objectMapper: ObjectMapper =
+        ObjectMapper().registerModule(KotlinModule.Builder().build()).apply {
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
 
     @MockK
     lateinit var reflectionHelper: ReflectionHelper
@@ -47,7 +48,8 @@ class EventMapperTest {
         val meta = EventMetadata()
 
         @Language("JSON")
-        val json = """
+        val json =
+            """
             {
                 "firstName":"firstName1",
                 "aggregatorType":"user",
@@ -59,20 +61,21 @@ class EventMapperTest {
                 "accountGuid":"${event.accountGuid}",
                 "secondName":"secondName1"
             }
-        """.trimIndent()
-        val expected = EventsRecord().apply {
-            guid = event.guid
-            accountGuid = event.accountGuid
-            aggregator = event.aggregatorType
-            aggregatorGuid = event.aggregatorGuid
-            type = event.eventType
-            version = event.eventTypeVersion
-            createdAt = meta.createdAt
-            comment = meta.comment
-            creatorGuid = meta.creatorGuid
-            skip = meta.skip
-            body = JSONB.valueOf(json)
-        }
+            """.trimIndent()
+        val expected =
+            EventsRecord().apply {
+                guid = event.guid
+                accountGuid = event.accountGuid
+                aggregator = event.aggregatorType
+                aggregatorGuid = event.aggregatorGuid
+                type = event.eventType
+                version = event.eventTypeVersion
+                createdAt = meta.createdAt
+                comment = meta.comment
+                creatorGuid = meta.creatorGuid
+                skip = meta.skip
+                body = JSONB.valueOf(json)
+            }
 
         val actual = service.toRecord(event, meta)
 
@@ -95,7 +98,8 @@ class EventMapperTest {
         val meta = EventMetadata()
 
         @Language("JSON")
-        val json = """
+        val json =
+            """
             {
                 "firstName":"firstName1",
                 "aggregatorType":"user",
@@ -107,21 +111,22 @@ class EventMapperTest {
                 "accountGuid":"${event.accountGuid}",
                 "secondName":"secondName1"
             }
-        """.trimIndent()
-        val record = EventsRecord().apply {
-            id = 1L
-            guid = event.guid
-            accountGuid = event.accountGuid
-            aggregator = event.aggregatorType
-            aggregatorGuid = event.aggregatorGuid
-            type = event.eventType
-            version = event.eventTypeVersion
-            createdAt = meta.createdAt
-            comment = meta.comment
-            creatorGuid = meta.creatorGuid
-            skip = meta.skip
-            body = JSONB.valueOf(json)
-        }
+            """.trimIndent()
+        val record =
+            EventsRecord().apply {
+                id = 1L
+                guid = event.guid
+                accountGuid = event.accountGuid
+                aggregator = event.aggregatorType
+                aggregatorGuid = event.aggregatorGuid
+                type = event.eventType
+                version = event.eventTypeVersion
+                createdAt = meta.createdAt
+                comment = meta.comment
+                creatorGuid = meta.creatorGuid
+                skip = meta.skip
+                body = JSONB.valueOf(json)
+            }
         every { reflectionHelper.eventsToClass() } answers {
             val map = HashMap<String, Class<*>>()
             map["UserRegistered"] = UserRegistered::class.java

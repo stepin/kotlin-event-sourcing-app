@@ -27,9 +27,10 @@ import java.util.*
 class EventStorePublisherImplTest {
     private lateinit var service: EventStorePublisher
     private lateinit var eventMapper: EventMapper
-    private val objectMapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).apply {
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    }
+    private val objectMapper: ObjectMapper =
+        ObjectMapper().registerModule(KotlinModule.Builder().build()).apply {
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
 
     @MockK
     lateinit var db: DSLContext
@@ -51,88 +52,92 @@ class EventStorePublisherImplTest {
     }
 
     @Test
-    fun `publish list default case`() = runBlocking {
-        val events: List<DomainEventWithMeta> = flow3events().toList().map { it.event to it.meta }
-        val expected = events.map { it.first.guid }
-        val spyService = spyk(service)
-        coEvery { spyService.publish(any<DomainEvent>(), any(), false) } answers {
-            val event: DomainEvent = firstArg()
-            event.guid
-        }
-
-        val actual = spyService.publish(events)
-
-        assertEquals(expected, actual)
-        coVerify(exactly = 3) { spyService.publish(any<DomainEvent>(), any(), false) }
-    }
-
-    @Test
-    fun `publish list skip reactor case`() = runBlocking {
-        val events: List<DomainEventWithMeta> = flow3events().toList().map { it.event to it.meta }
-        val expected = events.map { it.first.guid }
-        val spyService = spyk(service)
-        coEvery { spyService.publish(any<DomainEvent>(), any(), true) } answers {
-            val event: DomainEvent = firstArg()
-            event.guid
-        }
-
-        val actual = spyService.publish(events, true)
-
-        assertEquals(expected, actual)
-        coVerify(exactly = 3) { spyService.publish(any<DomainEvent>(), any(), true) }
-    }
-
-    @Test
-    fun `publish one default case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        val dsl = mockk<DSLContext>()
-        val configuration = mockk<Configuration>()
-        mockkStatic("name.stepin.utils.JooqKotlin") {
-            coEvery { dsl.coInsert(any<EventsRecord>()) } returns 10
-            every { db.transactionPublisher<UUID>(any()) } answers {
-                val block = firstArg<TransactionalPublishable<UUID>>()
-                val reactivePublisher = block.run(configuration)
-                val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
-                jooqPublisher
+    fun `publish list default case`() =
+        runBlocking {
+            val events: List<DomainEventWithMeta> = flow3events().toList().map { it.event to it.meta }
+            val expected = events.map { it.first.guid }
+            val spyService = spyk(service)
+            coEvery { spyService.publish(any<DomainEvent>(), any(), false) } answers {
+                val event: DomainEvent = firstArg()
+                event.guid
             }
-            every { configuration.dsl() } returns dsl
-            coEvery { inlineProcessor.process(event, meta, false) } returns Unit
 
-            val actual = service.publish(event, meta)
+            val actual = spyService.publish(events)
 
-            assertEquals(event.guid, actual)
-            verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
-            verify(exactly = 1) { configuration.dsl() }
-            coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
-            coVerify(exactly = 1) { inlineProcessor.process(event, meta, false) }
+            assertEquals(expected, actual)
+            coVerify(exactly = 3) { spyService.publish(any<DomainEvent>(), any(), false) }
         }
-    }
 
     @Test
-    fun `publish one skip reactor case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        val dsl = mockk<DSLContext>()
-        val configuration = mockk<Configuration>()
-        mockkStatic("name.stepin.utils.JooqKotlin") {
-            every { db.transactionPublisher<UUID>(any()) } answers {
-                val block = firstArg<TransactionalPublishable<UUID>>()
-                val reactivePublisher = block.run(configuration)
-                val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
-                jooqPublisher
+    fun `publish list skip reactor case`() =
+        runBlocking {
+            val events: List<DomainEventWithMeta> = flow3events().toList().map { it.event to it.meta }
+            val expected = events.map { it.first.guid }
+            val spyService = spyk(service)
+            coEvery { spyService.publish(any<DomainEvent>(), any(), true) } answers {
+                val event: DomainEvent = firstArg()
+                event.guid
             }
-            every { configuration.dsl() } returns dsl
-            coEvery { dsl.coInsert(any<EventsRecord>()) } returns 1
-            coEvery { inlineProcessor.process(event, meta, true) } returns Unit
 
-            val actual = service.publish(event, meta, true)
+            val actual = spyService.publish(events, true)
 
-            assertEquals(event.guid, actual)
-            verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
-            verify(exactly = 1) { configuration.dsl() }
-            coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
-            coVerify(exactly = 1) { inlineProcessor.process(event, meta, true) }
+            assertEquals(expected, actual)
+            coVerify(exactly = 3) { spyService.publish(any<DomainEvent>(), any(), true) }
         }
-    }
+
+    @Test
+    fun `publish one default case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            val dsl = mockk<DSLContext>()
+            val configuration = mockk<Configuration>()
+            mockkStatic("name.stepin.utils.JooqKotlin") {
+                coEvery { dsl.coInsert(any<EventsRecord>()) } returns 10
+                every { db.transactionPublisher<UUID>(any()) } answers {
+                    val block = firstArg<TransactionalPublishable<UUID>>()
+                    val reactivePublisher = block.run(configuration)
+                    val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
+                    jooqPublisher
+                }
+                every { configuration.dsl() } returns dsl
+                coEvery { inlineProcessor.process(event, meta, false) } returns Unit
+
+                val actual = service.publish(event, meta)
+
+                assertEquals(event.guid, actual)
+                verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
+                verify(exactly = 1) { configuration.dsl() }
+                coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
+                coVerify(exactly = 1) { inlineProcessor.process(event, meta, false) }
+            }
+        }
+
+    @Test
+    fun `publish one skip reactor case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            val dsl = mockk<DSLContext>()
+            val configuration = mockk<Configuration>()
+            mockkStatic("name.stepin.utils.JooqKotlin") {
+                every { db.transactionPublisher<UUID>(any()) } answers {
+                    val block = firstArg<TransactionalPublishable<UUID>>()
+                    val reactivePublisher = block.run(configuration)
+                    val jooqPublisher = Publisher { reactivePublisher.subscribe(it) }
+                    jooqPublisher
+                }
+                every { configuration.dsl() } returns dsl
+                coEvery { dsl.coInsert(any<EventsRecord>()) } returns 1
+                coEvery { inlineProcessor.process(event, meta, true) } returns Unit
+
+                val actual = service.publish(event, meta, true)
+
+                assertEquals(event.guid, actual)
+                verify(exactly = 1) { db.transactionPublisher<UUID>(any()) }
+                verify(exactly = 1) { configuration.dsl() }
+                coVerify(exactly = 1) { dsl.coInsert(any<EventsRecord>()) }
+                coVerify(exactly = 1) { inlineProcessor.process(event, meta, true) }
+            }
+        }
 }

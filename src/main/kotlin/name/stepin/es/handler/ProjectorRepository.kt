@@ -12,10 +12,10 @@ class ProjectorRepository(
     reflectionHelper: ReflectionHelper,
     applicationContext: ApplicationContext,
 ) : HandlerRepository(
-    processorAnnotation = Projector::class,
-    reflectionHelper = reflectionHelper,
-    applicationContext = applicationContext,
-) {
+        processorAnnotation = Projector::class,
+        reflectionHelper = reflectionHelper,
+        applicationContext = applicationContext,
+    ) {
     companion object : Logging
 
     @PostConstruct
@@ -23,7 +23,10 @@ class ProjectorRepository(
         initProcessor()
     }
 
-    override suspend fun process(event: DomainEvent, meta: EventMetadata) {
+    override suspend fun process(
+        event: DomainEvent,
+        meta: EventMetadata,
+    ) {
         val eventClass = event.javaClass.canonicalName
         val processors = map[eventClass]
         if (processors.isNullOrEmpty()) {

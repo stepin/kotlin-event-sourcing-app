@@ -22,12 +22,13 @@ import org.springframework.context.ApplicationContext
 class ProjectorRepositoryTest {
     private lateinit var service: ProjectorRepository
 
-    private val reflectionHelper = ReflectionHelper(
-        EventSourcingConfig(
-            eventsPackage = "name.stepin",
-            processorsPackage = "name.stepin",
-        ),
-    )
+    private val reflectionHelper =
+        ReflectionHelper(
+            EventSourcingConfig(
+                eventsPackage = "name.stepin",
+                processorsPackage = "name.stepin",
+            ),
+        )
 
     @MockK
     lateinit var applicationContext: ApplicationContext
@@ -43,35 +44,37 @@ class ProjectorRepositoryTest {
     }
 
     @Test
-    fun `process no processors case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
+    fun `process no processors case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
 
-        service.process(event, meta)
-    }
+            service.process(event, meta)
+        }
 
     @Test
-    fun `process main case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        val processorMock = mockk<UserProjector>()
-        val processorMock2 = mockk<TestProjector>()
-        val processorMock3 = mockk<AccountCreatedProjector>()
-        every { applicationContext.getBean(UserProjector::class.java) } returns processorMock
-        every { applicationContext.getBean(TestProjector::class.java) } returns processorMock2
-        every { applicationContext.getBean(AccountCreatedProjector::class.java) } returns processorMock3
-        coEvery { processorMock.handleUserRegistered(event, meta) } returns Unit
-        coEvery { processorMock2.handle(event) } returns Unit
+    fun `process main case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            val processorMock = mockk<UserProjector>()
+            val processorMock2 = mockk<TestProjector>()
+            val processorMock3 = mockk<AccountCreatedProjector>()
+            every { applicationContext.getBean(UserProjector::class.java) } returns processorMock
+            every { applicationContext.getBean(TestProjector::class.java) } returns processorMock2
+            every { applicationContext.getBean(AccountCreatedProjector::class.java) } returns processorMock3
+            coEvery { processorMock.handleUserRegistered(event, meta) } returns Unit
+            coEvery { processorMock2.handle(event) } returns Unit
 
-        service.init()
-        service.process(event, meta)
+            service.init()
+            service.process(event, meta)
 
-        verify(exactly = 3) { applicationContext.getBean(UserProjector::class.java) }
-        verify(exactly = 1) { applicationContext.getBean(TestProjector::class.java) }
-        verify(exactly = 1) { applicationContext.getBean(AccountCreatedProjector::class.java) }
-        coVerify(exactly = 1) { processorMock.handleUserRegistered(event, meta) }
-        coVerify(exactly = 1) { processorMock2.handle(event) }
-    }
+            verify(exactly = 3) { applicationContext.getBean(UserProjector::class.java) }
+            verify(exactly = 1) { applicationContext.getBean(TestProjector::class.java) }
+            verify(exactly = 1) { applicationContext.getBean(AccountCreatedProjector::class.java) }
+            coVerify(exactly = 1) { processorMock.handleUserRegistered(event, meta) }
+            coVerify(exactly = 1) { processorMock2.handle(event) }
+        }
 }
 
 @Suppress("unused")

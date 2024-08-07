@@ -40,7 +40,10 @@ class UserProjector(
     }
 
     @Projector
-    suspend fun handleUserRegistered(e: UserRegistered, meta: EventMetadata) {
+    suspend fun handleUserRegistered(
+        e: UserRegistered,
+        meta: EventMetadata,
+    ) {
         val account = accountRepository.findByGuid(e.accountGuid)
 
         val u = UserEntity()
@@ -58,12 +61,16 @@ class UserProjector(
     }
 
     @Projector
-    suspend fun handleUserRemoved(e: UserRemoved, meta: EventMetadata) {
+    suspend fun handleUserRemoved(
+        e: UserRemoved,
+        meta: EventMetadata,
+    ) {
         val user = getUser(e.aggregatorGuid)
 
         userRepository.delete(user)
     }
 
-    private suspend fun getUser(userGuid: UUID) = userRepository.findByGuid(userGuid)
-        ?: throw DomainException(ErrorCode.USER_NOT_FOUND)
+    private suspend fun getUser(userGuid: UUID) =
+        userRepository.findByGuid(userGuid)
+            ?: throw DomainException(ErrorCode.USER_NOT_FOUND)
 }

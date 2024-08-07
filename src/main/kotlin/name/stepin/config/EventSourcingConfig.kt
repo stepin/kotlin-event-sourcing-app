@@ -14,5 +14,7 @@ data class EventSourcingConfig(
 )
 
 enum class StartupType {
-    SEED, DB_PROCESSING, NO_INITIAL_PROCESSING
+    SEED,
+    DB_PROCESSING,
+    NO_INITIAL_PROCESSING,
 }

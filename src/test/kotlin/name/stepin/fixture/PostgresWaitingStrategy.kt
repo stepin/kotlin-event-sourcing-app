@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
 class PostgresWaitingStrategy(
     private var startupTimeout: Duration = Duration.ofSeconds(60),
 ) : WaitStrategy {
-
     override fun waitUntilReady(waitStrategyTarget: WaitStrategyTarget) {
         try {
             Unreliables.retryUntilSuccess(startupTimeout.seconds.toInt(), TimeUnit.SECONDS) {
@@ -36,10 +35,11 @@ class PostgresWaitingStrategy(
     private fun getConnection(waitStrategyTarget: WaitStrategyTarget): Connection {
         val container = waitStrategyTarget as PostgreSQLContainer<*>
         try {
-            val connectionProps = Properties().apply {
-                put("user", container.username)
-                put("password", container.password)
-            }
+            val connectionProps =
+                Properties().apply {
+                    put("user", container.username)
+                    put("password", container.password)
+                }
             return DriverManager.getConnection(container.jdbcUrl, connectionProps)
         } catch (e: Exception) {
             throw ConnectionCreationException("Could not obtain PostgresSQL connection", e)

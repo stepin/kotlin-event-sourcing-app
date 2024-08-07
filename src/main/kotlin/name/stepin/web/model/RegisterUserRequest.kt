@@ -8,10 +8,11 @@ data class RegisterUserRequest(
     val secondName: String?,
     val displayName: String?,
 ) {
-    fun toCommandParams() = RegisterUser.Params(
-        email = email,
-        firstName = firstName,
-        secondName = secondName,
-        displayName = displayName,
-    )
+    fun toCommandParams() =
+        RegisterUser.Params(
+            email = email,
+            firstName = firstName,
+            secondName = secondName,
+            displayName = displayName,
+        )
 }

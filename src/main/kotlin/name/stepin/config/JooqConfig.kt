@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Primary
 
 @Configuration
 class JooqConfig {
-
     @Primary
     @Bean
     fun dslContext(connectionFactory: ConnectionFactory) = DSL.using(connectionFactory, SQLDialect.POSTGRES)

@@ -8,6 +8,8 @@ import java.util.UUID
 
 interface UserRepository : CoroutineCrudRepository<UserEntity, Long> {
     suspend fun findByGuid(guid: UUID): UserEntity?
+
     suspend fun findByEmail(email: String): UserEntity?
+
     fun findAllByCreatedAtAfter(date: Instant): Flow<UserEntity>
 }

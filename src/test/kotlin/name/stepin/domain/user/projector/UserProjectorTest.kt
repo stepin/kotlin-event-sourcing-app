@@ -27,7 +27,6 @@ import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class UserProjectorTest {
-
     private lateinit var projector: UserProjector
 
     @MockK
@@ -47,159 +46,175 @@ class UserProjectorTest {
     }
 
     @Test
-    fun `handleUserMetaUpdated not found case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = UserMetaUpdated(
-            aggregatorGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-            firstName = "firstName2",
-            secondName = "secondName2",
-            displayName = "displayName2",
-        )
-        coEvery { userRepository.findByGuid(userGuid) } returns null
+    fun `handleUserMetaUpdated not found case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event =
+                UserMetaUpdated(
+                    aggregatorGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                    firstName = "firstName2",
+                    secondName = "secondName2",
+                    displayName = "displayName2",
+                )
+            coEvery { userRepository.findByGuid(userGuid) } returns null
 
-        val exception = assertThrows<DomainException> {
+            val exception =
+                assertThrows<DomainException> {
+                    projector.handleUserMetaUpdated(event)
+                }
+
+            assertEquals("USER_NOT_FOUND", exception.message)
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+        }
+
+    @Test
+    fun `handleUserMetaUpdated nothing to update case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event =
+                UserMetaUpdated(
+                    aggregatorGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                    firstName = null,
+                    secondName = null,
+                    displayName = null,
+                )
+            val userEntity = userEntity(1)
+            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+            coEvery { userRepository.save(userEntity) } answers { firstArg() }
+
             projector.handleUserMetaUpdated(event)
+
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+            coVerify(exactly = 1) { userRepository.save(any()) }
         }
 
-        assertEquals("USER_NOT_FOUND", exception.message)
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-    }
-
     @Test
-    fun `handleUserMetaUpdated nothing to update case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = UserMetaUpdated(
-            aggregatorGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-            firstName = null,
-            secondName = null,
-            displayName = null,
-        )
-        val userEntity = userEntity(1)
-        coEvery { userRepository.findByGuid(userGuid) } returns userEntity
-        coEvery { userRepository.save(userEntity) } answers { firstArg() }
+    fun `handleUserMetaUpdated main case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event =
+                UserMetaUpdated(
+                    aggregatorGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                    firstName = "firstName2",
+                    secondName = "secondName2",
+                    displayName = "displayName2",
+                )
+            val userEntity = userEntity(1)
+            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+            coEvery { userRepository.save(userEntity) } answers { firstArg() }
 
-        projector.handleUserMetaUpdated(event)
+            projector.handleUserMetaUpdated(event)
 
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-        coVerify(exactly = 1) { userRepository.save(any()) }
-    }
-
-    @Test
-    fun `handleUserMetaUpdated main case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = UserMetaUpdated(
-            aggregatorGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-            firstName = "firstName2",
-            secondName = "secondName2",
-            displayName = "displayName2",
-        )
-        val userEntity = userEntity(1)
-        coEvery { userRepository.findByGuid(userGuid) } returns userEntity
-        coEvery { userRepository.save(userEntity) } answers { firstArg() }
-
-        projector.handleUserMetaUpdated(event)
-
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-        coVerify(exactly = 1) { userRepository.save(any()) }
-    }
-
-    @Test
-    fun `handleUserRegistered no account case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
-        val event = UserRegistered(
-            aggregatorGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-            email = "dorthy.sparks@example.com",
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "Tammi Tillman",
-        )
-        val meta = EventMetadata(createdAt = createdAt)
-        val entity = userEntity(1).apply {
-            id = null
-            guid = userGuid
-            accountGuid = event.accountGuid
-            accountId = 0
-            email = "dorthy.sparks@example.com"
-            firstName = "firstName1"
-            secondName = "secondName1"
-            displayName = "Tammi Tillman"
-            this.createdAt = createdAt.toInstant(ZoneOffset.UTC)
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+            coVerify(exactly = 1) { userRepository.save(any()) }
         }
-        coEvery { accountRepository.findByGuid(event.accountGuid) } returns null
-        coEvery { userRepository.save(entity) } answers { firstArg() }
-
-        projector.handleUserRegistered(event, meta)
-
-        coVerify(exactly = 1) { userRepository.save(entity) }
-        coVerify(exactly = 1) { accountRepository.findByGuid(event.accountGuid) }
-    }
 
     @Test
-    fun `handleUserRegistered main case`() = runBlocking {
-        val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
-        val userGuid = UUID.randomUUID()
-        val event = UserRegistered(
-            aggregatorGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-            email = "dorthy.sparks@example.com",
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "Tammi Tillman",
-        )
-        val meta = EventMetadata(createdAt = createdAt)
-        val accountEntity = accountEntity(1)
-        val entity = userEntity(1).apply {
-            id = null
-            guid = userGuid
-            accountGuid = event.accountGuid
-            accountId = accountEntity.id!!
-            email = "dorthy.sparks@example.com"
-            firstName = "firstName1"
-            secondName = "secondName1"
-            displayName = "Tammi Tillman"
-            this.createdAt = createdAt.toInstant(ZoneOffset.UTC)
+    fun `handleUserRegistered no account case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
+            val event =
+                UserRegistered(
+                    aggregatorGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                    email = "dorthy.sparks@example.com",
+                    firstName = "firstName1",
+                    secondName = "secondName1",
+                    displayName = "Tammi Tillman",
+                )
+            val meta = EventMetadata(createdAt = createdAt)
+            val entity =
+                userEntity(1).apply {
+                    id = null
+                    guid = userGuid
+                    accountGuid = event.accountGuid
+                    accountId = 0
+                    email = "dorthy.sparks@example.com"
+                    firstName = "firstName1"
+                    secondName = "secondName1"
+                    displayName = "Tammi Tillman"
+                    this.createdAt = createdAt.toInstant(ZoneOffset.UTC)
+                }
+            coEvery { accountRepository.findByGuid(event.accountGuid) } returns null
+            coEvery { userRepository.save(entity) } answers { firstArg() }
+
+            projector.handleUserRegistered(event, meta)
+
+            coVerify(exactly = 1) { userRepository.save(entity) }
+            coVerify(exactly = 1) { accountRepository.findByGuid(event.accountGuid) }
         }
-        coEvery { accountRepository.findByGuid(event.accountGuid) } returns accountEntity
-        coEvery { userRepository.save(entity) } answers { firstArg() }
-
-        projector.handleUserRegistered(event, meta)
-
-        coVerify(exactly = 1) { userRepository.save(entity) }
-        coVerify(exactly = 1) { accountRepository.findByGuid(event.accountGuid) }
-    }
 
     @Test
-    fun `handleUserRemoved not found case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = UUID.randomUUID())
-        val meta = EventMetadata()
-        coEvery { userRepository.findByGuid(userGuid) } returns null
+    fun `handleUserRegistered main case`() =
+        runBlocking {
+            val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
+            val userGuid = UUID.randomUUID()
+            val event =
+                UserRegistered(
+                    aggregatorGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                    email = "dorthy.sparks@example.com",
+                    firstName = "firstName1",
+                    secondName = "secondName1",
+                    displayName = "Tammi Tillman",
+                )
+            val meta = EventMetadata(createdAt = createdAt)
+            val accountEntity = accountEntity(1)
+            val entity =
+                userEntity(1).apply {
+                    id = null
+                    guid = userGuid
+                    accountGuid = event.accountGuid
+                    accountId = accountEntity.id!!
+                    email = "dorthy.sparks@example.com"
+                    firstName = "firstName1"
+                    secondName = "secondName1"
+                    displayName = "Tammi Tillman"
+                    this.createdAt = createdAt.toInstant(ZoneOffset.UTC)
+                }
+            coEvery { accountRepository.findByGuid(event.accountGuid) } returns accountEntity
+            coEvery { userRepository.save(entity) } answers { firstArg() }
 
-        val exception = assertThrows<DomainException> {
+            projector.handleUserRegistered(event, meta)
+
+            coVerify(exactly = 1) { userRepository.save(entity) }
+            coVerify(exactly = 1) { accountRepository.findByGuid(event.accountGuid) }
+        }
+
+    @Test
+    fun `handleUserRemoved not found case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = UUID.randomUUID())
+            val meta = EventMetadata()
+            coEvery { userRepository.findByGuid(userGuid) } returns null
+
+            val exception =
+                assertThrows<DomainException> {
+                    projector.handleUserRemoved(event, meta)
+                }
+
+            assertEquals("USER_NOT_FOUND", exception.message)
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+        }
+
+    @Test
+    fun `handleUserRemoved main case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = UUID.randomUUID())
+            val meta = EventMetadata()
+            val userEntity = userEntity(1)
+            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+            coEvery { userRepository.delete(userEntity) } returns Unit
+
             projector.handleUserRemoved(event, meta)
+
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+            coVerify(exactly = 1) { userRepository.delete(userEntity) }
         }
-
-        assertEquals("USER_NOT_FOUND", exception.message)
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-    }
-
-    @Test
-    fun `handleUserRemoved main case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = UUID.randomUUID())
-        val meta = EventMetadata()
-        val userEntity = userEntity(1)
-        coEvery { userRepository.findByGuid(userGuid) } returns userEntity
-        coEvery { userRepository.delete(userEntity) } returns Unit
-
-        projector.handleUserRemoved(event, meta)
-
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-        coVerify(exactly = 1) { userRepository.delete(userEntity) }
-    }
 }

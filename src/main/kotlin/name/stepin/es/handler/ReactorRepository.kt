@@ -13,10 +13,10 @@ class ReactorRepository(
     reflectionHelper: ReflectionHelper,
     applicationContext: ApplicationContext,
 ) : HandlerRepository(
-    processorAnnotation = Reactor::class,
-    reflectionHelper = reflectionHelper,
-    applicationContext = applicationContext,
-) {
+        processorAnnotation = Reactor::class,
+        reflectionHelper = reflectionHelper,
+        applicationContext = applicationContext,
+    ) {
     companion object : Logging
 
     @PostConstruct
@@ -24,7 +24,10 @@ class ReactorRepository(
         initProcessor()
     }
 
-    override suspend fun process(event: DomainEvent, meta: EventMetadata) {
+    override suspend fun process(
+        event: DomainEvent,
+        meta: EventMetadata,
+    ) {
         val eventClass = event.javaClass.canonicalName
         val processors = map[eventClass]
         if (processors.isNullOrEmpty()) {

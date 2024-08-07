@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Test
 class UserResponseTest {
     @Test
     fun `default name`() {
-        val entity = userEntity(1).apply {
-            displayName = null
-        }
+        val entity =
+            userEntity(1).apply {
+                displayName = null
+            }
 
         val actual = UserResponse.from(entity)
 

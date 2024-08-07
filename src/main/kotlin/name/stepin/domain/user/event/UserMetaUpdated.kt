@@ -13,6 +13,5 @@ data class UserMetaUpdated(
     override val accountGuid: AccountGuid,
     override val guid: EventGuid = UUID.randomUUID(),
 ) : UserEvent() {
-
     fun nothingChanged(): Boolean = firstName == null && secondName == null && displayName == null
 }

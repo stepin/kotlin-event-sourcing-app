@@ -22,24 +22,27 @@ class UpdateUserInformation(
         val displayName: String?,
     )
 
-    suspend fun execute(params: Params): ErrorCode? = with(params) {
-        val user = userRepository.findByGuid(userGuid)
-            ?: return ErrorCode.USER_NOT_FOUND
+    suspend fun execute(params: Params): ErrorCode? =
+        with(params) {
+            val user =
+                userRepository.findByGuid(userGuid)
+                    ?: return ErrorCode.USER_NOT_FOUND
 
-        val event = UserMetaUpdated(
-            accountGuid = user.accountGuid,
-            aggregatorGuid = user.guid,
-            firstName = if (firstName != user.firstName) firstName else null,
-            secondName = if (secondName != user.secondName) secondName else null,
-            displayName = if (displayName != user.displayName) displayName else null,
-        )
+            val event =
+                UserMetaUpdated(
+                    accountGuid = user.accountGuid,
+                    aggregatorGuid = user.guid,
+                    firstName = if (firstName != user.firstName) firstName else null,
+                    secondName = if (secondName != user.secondName) secondName else null,
+                    displayName = if (displayName != user.displayName) displayName else null,
+                )
 
-        if (event.nothingChanged()) {
-            logger.debug { "nothing changed, creation of event skipped $params" }
+            if (event.nothingChanged()) {
+                logger.debug { "nothing changed, creation of event skipped $params" }
+                return@with null
+            }
+
+            store.publish(event)
             return@with null
         }
-
-        store.publish(event)
-        return@with null
-    }
 }

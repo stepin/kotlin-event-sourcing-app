@@ -19,7 +19,6 @@ class EventSourcingStarter(
     private val seed: Seed,
     private val inlineProcessor: InlineProcessor,
 ) : ApplicationRunner, HealthIndicator {
-
     companion object : Logging {
         private val initialized = AtomicBoolean(false)
     }

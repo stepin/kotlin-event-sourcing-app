@@ -49,97 +49,107 @@ class InlineProcessorTest {
     }
 
     @Test
-    fun `empty case`() = runBlocking {
-        coEvery {
-            eventStoreReader.findEventsSinceId<DomainEvent>(0, null, null, null, null, null)
-        } returns emptyFlow()
+    fun `empty case`() =
+        runBlocking {
+            coEvery {
+                eventStoreReader.findEventsSinceId<DomainEvent>(0, null, null, null, null, null)
+            } returns emptyFlow()
 
-        service.replayEvents(0, -1)
+            service.replayEvents(0, -1)
 
-        coVerify(exactly = 1) {
-            eventStoreReader.findEventsSinceId<DomainEvent>(0, null, null, null, null, null)
+            coVerify(exactly = 1) {
+                eventStoreReader.findEventsSinceId<DomainEvent>(0, null, null, null, null, null)
+            }
         }
-    }
 
     @Test
-    fun `main case`() = runBlocking {
-        coEvery {
-            eventStoreReader.findEventsSinceId<UserEvent>(1, null, null, null, null, null)
-        } returns flow3events()
-        val serviceMock = spyk(service)
-        coEvery { serviceMock.process(any(), any(), false) } returns Unit
+    fun `main case`() =
+        runBlocking {
+            coEvery {
+                eventStoreReader.findEventsSinceId<UserEvent>(1, null, null, null, null, null)
+            } returns flow3events()
+            val serviceMock = spyk(service)
+            coEvery { serviceMock.process(any(), any(), false) } returns Unit
 
-        serviceMock.replayEvents(1, 2, false)
+            serviceMock.replayEvents(1, 2, false)
 
-        coVerify(exactly = 1) {
-            eventStoreReader.findEventsSinceId<UserEvent>(1, null, null, null, null, null)
+            coVerify(exactly = 1) {
+                eventStoreReader.findEventsSinceId<UserEvent>(1, null, null, null, null, null)
+            }
+            coVerify(exactly = 2) { serviceMock.process(any(), any(), false) }
         }
-        coVerify(exactly = 2) { serviceMock.process(any(), any(), false) }
-    }
 
     @Test
-    fun `main case alternative`() = runBlocking {
-        coEvery {
-            eventStoreReader.findEventsSinceId<UserEvent>(0, null, null, null, null, null)
-        } returns flow3events()
-        val serviceMock = spyk(service)
-        coEvery { serviceMock.process(any(), any(), true) } returns Unit
+    fun `main case alternative`() =
+        runBlocking {
+            coEvery {
+                eventStoreReader.findEventsSinceId<UserEvent>(0, null, null, null, null, null)
+            } returns flow3events()
+            val serviceMock = spyk(service)
+            coEvery { serviceMock.process(any(), any(), true) } returns Unit
 
-        serviceMock.replayEvents(0, -1, true)
+            serviceMock.replayEvents(0, -1, true)
 
-        coVerify(exactly = 1) {
-            eventStoreReader.findEventsSinceId<UserEvent>(0, null, null, null, null, null)
+            coVerify(exactly = 1) {
+                eventStoreReader.findEventsSinceId<UserEvent>(0, null, null, null, null, null)
+            }
+            coVerify(exactly = 3) { serviceMock.process(any(), any(), true) }
         }
-        coVerify(exactly = 3) { serviceMock.process(any(), any(), true) }
-    }
 
     @Test
-    fun `process skip case`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata(skip = true)
+    fun `process skip case`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata(skip = true)
 
-        service.process(event, meta, false)
-    }
-
-    @Test
-    fun `process skip reactors`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        coEvery { projectors.process(event, meta) } returns Unit
-        val mockCounter = mockk<Counter>()
-        every {
-            mockCounter.increment()
-        } returns Unit
-        every {
-            meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType)))
-        } returns mockCounter
-
-        service.process(event, meta, true)
-
-        coVerify(exactly = 1) { projectors.process(event, meta) }
-        verify(exactly = 1) { mockCounter.increment() }
-        verify(exactly = 1) { meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType))) }
-    }
+            service.process(event, meta, false)
+        }
 
     @Test
-    fun `process with reactors`() = runBlocking {
-        val event = userRegistered(1)
-        val meta = EventMetadata()
-        coEvery { projectors.process(event, meta) } returns Unit
-        coEvery { reactors.process(event, meta) } returns Unit
-        val mockCounter = mockk<Counter>()
-        every {
-            mockCounter.increment()
-        } returns Unit
-        every {
-            meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType)))
-        } returns mockCounter
+    fun `process skip reactors`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            coEvery { projectors.process(event, meta) } returns Unit
+            val mockCounter = mockk<Counter>()
+            every {
+                mockCounter.increment()
+            } returns Unit
+            every {
+                meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType)))
+            } returns mockCounter
 
-        service.process(event, meta)
+            service.process(event, meta, true)
 
-        coVerify(exactly = 1) { projectors.process(event, meta) }
-        coVerify(exactly = 1) { reactors.process(event, meta) }
-        verify(exactly = 1) { mockCounter.increment() }
-        verify(exactly = 1) { meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType))) }
-    }
+            coVerify(exactly = 1) { projectors.process(event, meta) }
+            verify(exactly = 1) { mockCounter.increment() }
+            verify(exactly = 1) {
+                meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType)))
+            }
+        }
+
+    @Test
+    fun `process with reactors`() =
+        runBlocking {
+            val event = userRegistered(1)
+            val meta = EventMetadata()
+            coEvery { projectors.process(event, meta) } returns Unit
+            coEvery { reactors.process(event, meta) } returns Unit
+            val mockCounter = mockk<Counter>()
+            every {
+                mockCounter.increment()
+            } returns Unit
+            every {
+                meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType)))
+            } returns mockCounter
+
+            service.process(event, meta)
+
+            coVerify(exactly = 1) { projectors.process(event, meta) }
+            coVerify(exactly = 1) { reactors.process(event, meta) }
+            verify(exactly = 1) { mockCounter.increment() }
+            verify(
+                exactly = 1,
+            ) { meterRegistry.counter("events_counter", listOf(Tag.of("eventType", event.eventType))) }
+        }
 }

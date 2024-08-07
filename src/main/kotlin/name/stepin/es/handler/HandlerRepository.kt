@@ -46,5 +46,8 @@ abstract class HandlerRepository(
         }
     }
 
-    abstract suspend fun process(event: DomainEvent, meta: EventMetadata)
+    abstract suspend fun process(
+        event: DomainEvent,
+        meta: EventMetadata,
+    )
 }

@@ -22,7 +22,10 @@ class EventMapper(
     /**
      * For save operation.
      */
-    fun toRecord(event: DomainEvent, meta: EventMetadata): EventsRecord {
+    fun toRecord(
+        event: DomainEvent,
+        meta: EventMetadata,
+    ): EventsRecord {
         val eventsRecord = EventsRecord()
 
         eventsRecord.guid = event.guid
@@ -53,16 +56,18 @@ class EventMapper(
         val type = event2class[eventRecord.type] as Class<out DomainEvent>
         val event = objectMapper.readValue(eventRecord.body.toString(), type)
 
-        val meta = EventMetadata(
-            creatorGuid = eventRecord.creatorGuid!!,
-            createdAt = eventRecord.createdAt!!,
-            comment = eventRecord.comment!!,
-            skip = eventRecord.skip!!,
-        )
+        val meta =
+            EventMetadata(
+                creatorGuid = eventRecord.creatorGuid!!,
+                createdAt = eventRecord.createdAt!!,
+                comment = eventRecord.comment!!,
+                skip = eventRecord.skip!!,
+            )
 
         @Suppress("UNCHECKED_CAST")
-        val eventWithType = event as? T
-            ?: throw IllegalStateException("Incorrect event type: $event")
+        val eventWithType =
+            event as? T
+                ?: throw IllegalStateException("Incorrect event type: $event")
 
         return DomainEventWithIdAndMeta(id, eventWithType, meta)
     }

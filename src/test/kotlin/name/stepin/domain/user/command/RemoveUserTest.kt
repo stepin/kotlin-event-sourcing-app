@@ -39,42 +39,45 @@ class RemoveUserTest {
     }
 
     @Test
-    fun `not found case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        coEvery { userRepository.findByGuid(userGuid) } returns null
-
-        val actual = command.execute(userGuid)
-
-        assertEquals(ErrorCode.USER_NOT_FOUND, actual)
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-    }
-
-    @Test
-    fun `main case`() = runBlocking {
-        val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
-        val eventGuid = UUID.randomUUID()
-        val userGuid = UUID.randomUUID()
-        val accountGuid = UUID.randomUUID()
-        val userEntity = UserEntityFactory.userEntity(1).apply {
-            this.accountGuid = accountGuid
-            this.guid = userGuid
-        }
-        val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = accountGuid, guid = eventGuid)
-        val meta = EventMetadata(createdAt = createdAt)
-
-        mockkStatic(UUID::class, LocalDateTime::class) {
-            every { UUID.randomUUID() } returns eventGuid
-            every { LocalDateTime.now() } returns createdAt
-            coEvery { userRepository.findByGuid(userGuid) } returns userEntity
-            coEvery { store.publish(event, meta, false) } returns userGuid
+    fun `not found case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            coEvery { userRepository.findByGuid(userGuid) } returns null
 
             val actual = command.execute(userGuid)
 
-            assertNull(actual)
+            assertEquals(ErrorCode.USER_NOT_FOUND, actual)
             coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-            coVerify(exactly = 1) { store.publish(event, meta, false) }
-            verify(exactly = 1) { UUID.randomUUID() }
-            verify(exactly = 1) { LocalDateTime.now() }
         }
-    }
+
+    @Test
+    fun `main case`() =
+        runBlocking {
+            val createdAt = LocalDateTime.of(2023, 1, 1, 1, 1)
+            val eventGuid = UUID.randomUUID()
+            val userGuid = UUID.randomUUID()
+            val accountGuid = UUID.randomUUID()
+            val userEntity =
+                UserEntityFactory.userEntity(1).apply {
+                    this.accountGuid = accountGuid
+                    this.guid = userGuid
+                }
+            val event = UserRemoved(aggregatorGuid = userGuid, accountGuid = accountGuid, guid = eventGuid)
+            val meta = EventMetadata(createdAt = createdAt)
+
+            mockkStatic(UUID::class, LocalDateTime::class) {
+                every { UUID.randomUUID() } returns eventGuid
+                every { LocalDateTime.now() } returns createdAt
+                coEvery { userRepository.findByGuid(userGuid) } returns userEntity
+                coEvery { store.publish(event, meta, false) } returns userGuid
+
+                val actual = command.execute(userGuid)
+
+                assertNull(actual)
+                coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+                coVerify(exactly = 1) { store.publish(event, meta, false) }
+                verify(exactly = 1) { UUID.randomUUID() }
+                verify(exactly = 1) { LocalDateTime.now() }
+            }
+        }
 }

@@ -33,15 +33,17 @@ class DebugControllerTest {
 
     @Test
     fun `allUsers main case`() {
-        coEvery { debugService.getUsers() } returns listOf(
-            userEntity(1),
-            userEntity(2),
-        )
+        coEvery { debugService.getUsers() } returns
+            listOf(
+                userEntity(1),
+                userEntity(2),
+            )
 
-        val response = client.get()
-            .uri("/api/debug/users")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.get()
+                .uri("/api/debug/users")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().isOk
@@ -59,15 +61,17 @@ class DebugControllerTest {
 
     @Test
     fun `allAccounts main case`() {
-        coEvery { debugService.getAccounts() } returns listOf(
-            accountEntity(1),
-            accountEntity(2),
-        )
+        coEvery { debugService.getAccounts() } returns
+            listOf(
+                accountEntity(1),
+                accountEntity(2),
+            )
 
-        val response = client.get()
-            .uri("/api/debug/accounts")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
+        val response =
+            client.get()
+                .uri("/api/debug/accounts")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
 
         response
             .expectStatus().isOk

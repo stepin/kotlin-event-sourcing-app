@@ -27,7 +27,6 @@ import java.util.*
 @ExtendWith(MockKExtension::class)
 @AutoConfigureGraphQlTester
 class DebugGraphQLTest {
-
     @MockkBean
     private lateinit var debugService: DebugService
 
@@ -42,20 +41,23 @@ class DebugGraphQLTest {
     @Test
     fun `allUsers main case`() {
         @Language("GraphQL")
-        val document = """
+        val document =
+            """
             query {
                 allUsers{name email}
             }
-        """.trimIndent()
-        coEvery { debugService.getUsers() } returns listOf(
-            userEntity(1),
-            userEntity(2),
-        )
+            """.trimIndent()
+        coEvery { debugService.getUsers() } returns
+            listOf(
+                userEntity(1),
+                userEntity(2),
+            )
 
-        val response = graphQlTester.document(document)
-            .execute()
-            .path("$.data.allUsers")
-            .entityList(UserResult::class.java)
+        val response =
+            graphQlTester.document(document)
+                .execute()
+                .path("$.data.allUsers")
+                .entityList(UserResult::class.java)
 
         val list = response.get()
         assertEquals(2, list.size)
@@ -68,23 +70,26 @@ class DebugGraphQLTest {
     @Test
     fun `usersSince main case`() {
         @Language("GraphQL")
-        val document = """
+        val document =
+            """
             query usersSince1(${'$'}date: DateTime!){
                 usersSince(date: ${'$'}date){name email}
             }
-        """.trimIndent()
+            """.trimIndent()
         val dateString = "2023-01-01T01:01:01"
         val date = LocalDateTime.parse(dateString)
-        coEvery { debugService.getUsersSince(date) } returns listOf(
-            userEntity(1),
-            userEntity(2),
-        )
+        coEvery { debugService.getUsersSince(date) } returns
+            listOf(
+                userEntity(1),
+                userEntity(2),
+            )
 
-        val response = graphQlTester.document(document)
-            .variable("date", dateString)
-            .execute()
-            .path("$.data.usersSince")
-            .entityList(UserResult::class.java)
+        val response =
+            graphQlTester.document(document)
+                .variable("date", dateString)
+                .execute()
+                .path("$.data.usersSince")
+                .entityList(UserResult::class.java)
 
         val list = response.get()
         assertEquals(2, list.size)
@@ -97,23 +102,26 @@ class DebugGraphQLTest {
     @Test
     fun `userAudit main case`() {
         @Language("GraphQL")
-        val document = """
+        val document =
+            """
             query userAudit(${'$'}userGuid: UUID!){
                 userAudit(userGuid: ${'$'}userGuid)
             }
-        """.trimIndent()
+            """.trimIndent()
         val userGuid = UUID.randomUUID()
-        val expected = listOf(
-            "audit1",
-            "audit2",
-        )
+        val expected =
+            listOf(
+                "audit1",
+                "audit2",
+            )
         coEvery { debugService.getUserAudit(userGuid) } returns expected.asFlow()
 
-        val response = graphQlTester.document(document)
-            .variable("userGuid", userGuid)
-            .execute()
-            .path("$.data.userAudit")
-            .entityList(String::class.java)
+        val response =
+            graphQlTester.document(document)
+                .variable("userGuid", userGuid)
+                .execute()
+                .path("$.data.userAudit")
+                .entityList(String::class.java)
 
         assertEquals(expected, response.get())
         coVerify(exactly = 1) { debugService.getUserAudit(userGuid) }
@@ -122,21 +130,24 @@ class DebugGraphQLTest {
     @Test
     fun `allAccounts main case`() {
         @Language("GraphQL")
-        val document = """
+        val document =
+            """
             query {
                 allAccounts{ name }
             }
-        """.trimIndent()
-        coEvery { debugService.getAccounts() } returns listOf(
-            accountEntity(1),
-            accountEntity(2),
-        )
+            """.trimIndent()
+        coEvery { debugService.getAccounts() } returns
+            listOf(
+                accountEntity(1),
+                accountEntity(2),
+            )
 
-        val response = graphQlTester.document(document)
-            .execute()
-            .path("$.data.allAccounts")
-            .entityList(AccountResult::class.java)
-            .get()
+        val response =
+            graphQlTester.document(document)
+                .execute()
+                .path("$.data.allAccounts")
+                .entityList(AccountResult::class.java)
+                .get()
 
         assertEquals(listOf("name1", "name2"), response.map { it.name })
         coVerify(exactly = 1) { debugService.getAccounts() }

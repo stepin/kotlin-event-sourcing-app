@@ -17,7 +17,6 @@ import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class UserRegisteredEmailReactorTest {
-
     private lateinit var reactor: UserRegisteredEmailReactor
 
     @MockK
@@ -34,33 +33,35 @@ class UserRegisteredEmailReactorTest {
     }
 
     @Test
-    fun `main case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val token = userGuid.toString()
-        val e = UserRegistered(
-            email = "ernie.mcdowell@example.com",
-            firstName = "firstName1",
-            secondName = "secondName1",
-            displayName = "Stephan Hendricks",
-            accountGuid = UUID.randomUUID(),
-            aggregatorGuid = userGuid,
-        )
-        coEvery {
-            emailService.sendEmailConfirmationEmail(
-                name = "Stephan Hendricks",
-                email = "ernie.mcdowell@example.com",
-                token = token,
-            )
-        } returns Unit
+    fun `main case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val token = userGuid.toString()
+            val e =
+                UserRegistered(
+                    email = "ernie.mcdowell@example.com",
+                    firstName = "firstName1",
+                    secondName = "secondName1",
+                    displayName = "Stephan Hendricks",
+                    accountGuid = UUID.randomUUID(),
+                    aggregatorGuid = userGuid,
+                )
+            coEvery {
+                emailService.sendEmailConfirmationEmail(
+                    name = "Stephan Hendricks",
+                    email = "ernie.mcdowell@example.com",
+                    token = token,
+                )
+            } returns Unit
 
-        reactor.handle(e)
+            reactor.handle(e)
 
-        coVerify(exactly = 1) {
-            emailService.sendEmailConfirmationEmail(
-                name = "Stephan Hendricks",
-                email = "ernie.mcdowell@example.com",
-                token = token,
-            )
+            coVerify(exactly = 1) {
+                emailService.sendEmailConfirmationEmail(
+                    name = "Stephan Hendricks",
+                    email = "ernie.mcdowell@example.com",
+                    token = token,
+                )
+            }
         }
-    }
 }

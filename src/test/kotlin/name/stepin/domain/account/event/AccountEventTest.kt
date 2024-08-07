@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class AccountEventTest {
-
     @Test
     fun `check main fields`() {
         val event: AccountEvent = AccountCreated(name = "Francine McBride", userGuid = UUID.randomUUID())

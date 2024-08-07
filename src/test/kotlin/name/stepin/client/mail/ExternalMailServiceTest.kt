@@ -13,13 +13,14 @@ class ExternalMailServiceTest {
     }
 
     @Test
-    fun `sendEmail main case`() = runBlocking {
-        // dummy test for dummy method
-        service.sendEmail(
-            displayName = "Roosevelt Thompson",
-            email = "muriel.stephenson@example.com",
-            subject = "torquent",
-            text = "nonumes",
-        )
-    }
+    fun `sendEmail main case`() =
+        runBlocking {
+            // dummy test for dummy method
+            service.sendEmail(
+                displayName = "Roosevelt Thompson",
+                email = "muriel.stephenson@example.com",
+                subject = "torquent",
+                text = "nonumes",
+            )
+        }
 }

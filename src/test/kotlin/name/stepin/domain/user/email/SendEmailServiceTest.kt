@@ -33,66 +33,70 @@ class SendEmailServiceTest {
     }
 
     @Test
-    fun `sendEmailConfirmationEmail blank displayName case`() = runBlocking {
-        val emailText = """
-            Здравствуйте, Пользователь!
+    fun `sendEmailConfirmationEmail blank displayName case`() =
+        runBlocking {
+            val emailText =
+                """
+                Здравствуйте, Пользователь!
 
-            Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
+                Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
 
-            https://example.com/baseUrl/welcome
-        """.trimIndent()
-        every { appConfig.baseUrl } returns "https://example.com/baseUrl"
-        coEvery {
-            externalMailService.sendEmail(
-                displayName = "Пользователь",
-                email = "email1@example.com",
-                subject = "Спасибо за регистрацию!",
-                text = emailText,
-            )
-        } returns Unit
+                https://example.com/baseUrl/welcome
+                """.trimIndent()
+            every { appConfig.baseUrl } returns "https://example.com/baseUrl"
+            coEvery {
+                externalMailService.sendEmail(
+                    displayName = "Пользователь",
+                    email = "email1@example.com",
+                    subject = "Спасибо за регистрацию!",
+                    text = emailText,
+                )
+            } returns Unit
 
-        service.sendEmailConfirmationEmail("", "email1@example.com", "token1")
+            service.sendEmailConfirmationEmail("", "email1@example.com", "token1")
 
-        verify(exactly = 1) { appConfig.baseUrl }
-        coVerify(exactly = 1) {
-            externalMailService.sendEmail(
-                displayName = "Пользователь",
-                email = "email1@example.com",
-                subject = "Спасибо за регистрацию!",
-                text = any(),
-            )
+            verify(exactly = 1) { appConfig.baseUrl }
+            coVerify(exactly = 1) {
+                externalMailService.sendEmail(
+                    displayName = "Пользователь",
+                    email = "email1@example.com",
+                    subject = "Спасибо за регистрацию!",
+                    text = any(),
+                )
+            }
         }
-    }
 
     @Test
-    fun `sendEmailConfirmationEmail main case`() = runBlocking {
-        val emailText = """
-            Здравствуйте, name1!
+    fun `sendEmailConfirmationEmail main case`() =
+        runBlocking {
+            val emailText =
+                """
+                Здравствуйте, name1!
 
-            Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
+                Спасибо за регистрацию . Пожалуйста, перейдите по ссылке:
 
-            https://example.com/baseUrl/welcome
-        """.trimIndent()
-        every { appConfig.baseUrl } returns "https://example.com/baseUrl"
-        coEvery {
-            externalMailService.sendEmail(
-                displayName = "name1",
-                email = "email1@example.com",
-                subject = "Спасибо за регистрацию!",
-                text = emailText,
-            )
-        } returns Unit
+                https://example.com/baseUrl/welcome
+                """.trimIndent()
+            every { appConfig.baseUrl } returns "https://example.com/baseUrl"
+            coEvery {
+                externalMailService.sendEmail(
+                    displayName = "name1",
+                    email = "email1@example.com",
+                    subject = "Спасибо за регистрацию!",
+                    text = emailText,
+                )
+            } returns Unit
 
-        service.sendEmailConfirmationEmail("name1", "email1@example.com", "token1")
+            service.sendEmailConfirmationEmail("name1", "email1@example.com", "token1")
 
-        verify(exactly = 1) { appConfig.baseUrl }
-        coVerify(exactly = 1) {
-            externalMailService.sendEmail(
-                displayName = "name1",
-                email = "email1@example.com",
-                subject = "Спасибо за регистрацию!",
-                text = any(),
-            )
+            verify(exactly = 1) { appConfig.baseUrl }
+            coVerify(exactly = 1) {
+                externalMailService.sendEmail(
+                    displayName = "name1",
+                    email = "email1@example.com",
+                    subject = "Спасибо за регистрацию!",
+                    text = any(),
+                )
+            }
         }
-    }
 }

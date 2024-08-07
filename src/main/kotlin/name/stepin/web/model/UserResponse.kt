@@ -7,9 +7,10 @@ data class UserResponse(
     val email: String,
 ) {
     companion object {
-        fun from(entity: UserEntity) = UserResponse(
-            name = entity.displayName ?: "<none>",
-            email = entity.email,
-        )
+        fun from(entity: UserEntity) =
+            UserResponse(
+                name = entity.displayName ?: "<none>",
+                email = entity.email,
+            )
     }
 }

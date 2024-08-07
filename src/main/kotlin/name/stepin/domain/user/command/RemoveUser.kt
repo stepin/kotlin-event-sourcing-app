@@ -12,16 +12,16 @@ class RemoveUser(
     private val store: EventStorePublisher,
     private val userRepository: UserRepository,
 ) {
-    suspend fun execute(
-        userGuid: UUID,
-    ): ErrorCode? {
-        val user = userRepository.findByGuid(userGuid)
-            ?: return ErrorCode.USER_NOT_FOUND
+    suspend fun execute(userGuid: UUID): ErrorCode? {
+        val user =
+            userRepository.findByGuid(userGuid)
+                ?: return ErrorCode.USER_NOT_FOUND
 
-        val event = UserRemoved(
-            accountGuid = user.accountGuid,
-            aggregatorGuid = user.guid,
-        )
+        val event =
+            UserRemoved(
+                accountGuid = user.accountGuid,
+                aggregatorGuid = user.guid,
+            )
 
         store.publish(event)
         return null

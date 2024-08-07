@@ -8,10 +8,10 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.testcontainers.containers.PostgreSQLContainer
 
 object PostgresFactory {
-
-    fun postgres(): PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15.2")
-        .withReuse(true)
-        .waitingFor(PostgresWaitingStrategy())
+    fun postgres(): PostgreSQLContainer<*> =
+        PostgreSQLContainer("postgres:15.2")
+            .withReuse(true)
+            .waitingFor(PostgresWaitingStrategy())
 
     fun dslContext(postgres: PostgreSQLContainer<*>) = DSL.using(postgres.createConnection(""))
 
@@ -23,10 +23,11 @@ object PostgresFactory {
         }
 
     fun initDb(postgres: PostgreSQLContainer<*>) {
-        val flyway = Flyway.configure()
-            .schemas("public")
-            .dataSource(dataSource(postgres))
-            .load()
+        val flyway =
+            Flyway.configure()
+                .schemas("public")
+                .dataSource(dataSource(postgres))
+                .load()
 
         flyway.migrate()
     }

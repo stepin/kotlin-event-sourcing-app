@@ -1,9 +1,8 @@
 // FILE IS GENERATED AUTOMATICALLY BY kbre. DON'T EDIT MANUALLY.
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.yaml.snakeyaml.Yaml
-import org.jooq.meta.jaxb.Logging
-
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jooq.meta.jaxb.Logging
+import org.yaml.snakeyaml.Yaml
 import java.net.URI
 
 
@@ -25,7 +24,6 @@ plugins {
     alias(libs.plugins.dokka)
 
     alias(libs.plugins.jib)
-
 }
 
 group = "name.stepin"
@@ -93,9 +91,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation(libs.jooq.kotlin)
     implementation(libs.jooq.kotlin.coroutines)
-implementation(libs.graphql.java.extended.scalars)
-implementation(libs.reflections)
-
+    implementation(libs.graphql.java.extended.scalars)
+    implementation(libs.reflections)
 }
 
 dependencyManagement {
@@ -242,4 +239,3 @@ jib {
         ports = listOf("8080", "8081")
     }
 }
-

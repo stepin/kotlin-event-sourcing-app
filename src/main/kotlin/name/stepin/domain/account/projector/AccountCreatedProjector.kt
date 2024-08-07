@@ -20,9 +20,13 @@ class AccountCreatedProjector(
     companion object : Logging
 
     @Projector
-    suspend fun handle(e: AccountCreated, meta: EventMetadata) {
-        val user = userRepository.findByGuid(e.userGuid)
-            ?: throw DomainException(ErrorCode.USER_NOT_FOUND)
+    suspend fun handle(
+        e: AccountCreated,
+        meta: EventMetadata,
+    ) {
+        val user =
+            userRepository.findByGuid(e.userGuid)
+                ?: throw DomainException(ErrorCode.USER_NOT_FOUND)
 
         val a = AccountEntity()
         a.guid = e.aggregatorGuid

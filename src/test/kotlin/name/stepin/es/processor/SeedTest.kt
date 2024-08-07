@@ -37,28 +37,30 @@ class SeedTest {
     }
 
     @Test
-    fun `events already exists`() = runBlocking {
-        coEvery { eventDao.isNoEvents() } returns false
+    fun `events already exists`() =
+        runBlocking {
+            coEvery { eventDao.isNoEvents() } returns false
 
-        val actual = service.run()
+            val actual = service.run()
 
-        assertFalse(actual)
-        coVerify(exactly = 1) { eventDao.isNoEvents() }
-    }
+            assertFalse(actual)
+            coVerify(exactly = 1) { eventDao.isNoEvents() }
+        }
 
     @Test
-    fun `success case`() = runBlocking {
-        coEvery { eventDao.isNoEvents() } returns true
-        coEvery {
-            eventStorePublisher.publish(any<List<DomainEventWithMeta>>(), skipReactor = true)
-        } returns emptyList()
+    fun `success case`() =
+        runBlocking {
+            coEvery { eventDao.isNoEvents() } returns true
+            coEvery {
+                eventStorePublisher.publish(any<List<DomainEventWithMeta>>(), skipReactor = true)
+            } returns emptyList()
 
-        val actual = service.run()
+            val actual = service.run()
 
-        assertTrue(actual)
-        coVerify(exactly = 1) { eventDao.isNoEvents() }
-        coVerify(exactly = 1) {
-            eventStorePublisher.publish(any<List<DomainEventWithMeta>>(), skipReactor = true)
+            assertTrue(actual)
+            coVerify(exactly = 1) { eventDao.isNoEvents() }
+            coVerify(exactly = 1) {
+                eventStorePublisher.publish(any<List<DomainEventWithMeta>>(), skipReactor = true)
+            }
         }
-    }
 }

@@ -7,7 +7,12 @@ import org.springframework.stereotype.Service
 class ExternalMailService {
     companion object : Logging
 
-    suspend fun sendEmail(displayName: String, email: String, subject: String, text: String) {
+    suspend fun sendEmail(
+        displayName: String,
+        email: String,
+        subject: String,
+        text: String,
+    ) {
         logger.warn { "Just stub. $displayName $email $subject $text" }
     }
 }

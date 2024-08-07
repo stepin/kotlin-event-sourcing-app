@@ -8,10 +8,11 @@ data class UpdateUserRequest(
     val secondName: String?,
     val displayName: String?,
 ) {
-    fun toCommandParams(userGuid: UUID) = UpdateUserInformation.Params(
-        userGuid = userGuid,
-        firstName = firstName,
-        secondName = secondName,
-        displayName = displayName,
-    )
+    fun toCommandParams(userGuid: UUID) =
+        UpdateUserInformation.Params(
+            userGuid = userGuid,
+            firstName = firstName,
+            secondName = secondName,
+            displayName = displayName,
+        )
 }

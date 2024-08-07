@@ -42,42 +42,47 @@ class AccountCreatedProjectorTest {
     }
 
     @Test
-    fun `user not found case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = AccountCreated(
-            name = "Lorraine Spence",
-            userGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-        )
-        coEvery { userRepository.findByGuid(userGuid) } returns null
+    fun `user not found case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event =
+                AccountCreated(
+                    name = "Lorraine Spence",
+                    userGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                )
+            coEvery { userRepository.findByGuid(userGuid) } returns null
 
-        val exception = assertThrows<DomainException> {
-            projector.handle(event, EventMetadata())
+            val exception =
+                assertThrows<DomainException> {
+                    projector.handle(event, EventMetadata())
+                }
+
+            assertEquals("USER_NOT_FOUND", exception.message)
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
         }
-
-        assertEquals("USER_NOT_FOUND", exception.message)
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-    }
 
     @Test
-    fun `main case`() = runBlocking {
-        val userGuid = UUID.randomUUID()
-        val event = AccountCreated(
-            name = "Lorraine Spence",
-            userGuid = userGuid,
-            accountGuid = UUID.randomUUID(),
-        )
-        coEvery { userRepository.findByGuid(userGuid) } returns userEntity(1)
-        coEvery { accountRepository.save(any()) } answers {
-            val entity: AccountEntity = firstArg()
-            entity.apply { id = 100 }
+    fun `main case`() =
+        runBlocking {
+            val userGuid = UUID.randomUUID()
+            val event =
+                AccountCreated(
+                    name = "Lorraine Spence",
+                    userGuid = userGuid,
+                    accountGuid = UUID.randomUUID(),
+                )
+            coEvery { userRepository.findByGuid(userGuid) } returns userEntity(1)
+            coEvery { accountRepository.save(any()) } answers {
+                val entity: AccountEntity = firstArg()
+                entity.apply { id = 100 }
+            }
+            coEvery { userRepository.save(any()) } answers { firstArg() }
+
+            projector.handle(event, EventMetadata())
+
+            coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
+            coVerify(exactly = 1) { accountRepository.save(any()) }
+            coVerify(exactly = 1) { userRepository.save(any()) }
         }
-        coEvery { userRepository.save(any()) } answers { firstArg() }
-
-        projector.handle(event, EventMetadata())
-
-        coVerify(exactly = 1) { userRepository.findByGuid(userGuid) }
-        coVerify(exactly = 1) { accountRepository.save(any()) }
-        coVerify(exactly = 1) { userRepository.save(any()) }
-    }
 }

@@ -23,7 +23,6 @@ class DebugService(
     private val accountRepository: AccountRepository,
     private val eventStoreReader: EventStoreReader,
 ) {
-
     suspend fun getUsers(): List<UserEntity> {
         return userRepository.findAll().toList()
     }

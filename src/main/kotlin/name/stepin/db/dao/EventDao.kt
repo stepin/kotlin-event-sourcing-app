@@ -22,18 +22,20 @@ class EventDao(
 ) {
     companion object : Logging
 
-    suspend fun byGuid(guid: EventGuid): EventsRecord? = db
-        .select(EVENTS)
-        .from(EVENTS)
-        .where(EVENTS.GUID.eq(guid))
-        .awaitFirstOrNull()
-        ?.value1()
+    suspend fun byGuid(guid: EventGuid): EventsRecord? =
+        db
+            .select(EVENTS)
+            .from(EVENTS)
+            .where(EVENTS.GUID.eq(guid))
+            .awaitFirstOrNull()
+            ?.value1()
 
-    suspend fun eventsCount(): Int = db
-        .selectCount()
-        .from(EVENTS)
-        .awaitFirst()
-        .value1()
+    suspend fun eventsCount(): Int =
+        db
+            .selectCount()
+            .from(EVENTS)
+            .awaitFirst()
+            .value1()
 
     suspend fun isNoEvents(): Boolean = eventsCount() == 0
 
@@ -45,39 +47,40 @@ class EventDao(
         eventTypes: List<String>?,
         maxBatchSize: Int?,
     ): Flow<Record1<EventsRecord>> {
-        val queryWithoutLimit = db
-            .select(EVENTS)
-            .from(EVENTS)
-            .where(mainCondition)
-            .and(
-                if (accountGuid != null) {
-                    EVENTS.ACCOUNT_GUID.eq(accountGuid)
-                } else {
-                    noCondition()
-                },
-            )
-            .and(
-                if (aggregator != null) {
-                    EVENTS.AGGREGATOR.eq(aggregator)
-                } else {
-                    noCondition()
-                },
-            )
-            .and(
-                if (aggregatorGuid != null) {
-                    EVENTS.AGGREGATOR_GUID.eq(aggregatorGuid)
-                } else {
-                    noCondition()
-                },
-            )
-            .and(
-                if (!eventTypes.isNullOrEmpty()) {
-                    EVENTS.TYPE.`in`(eventTypes)
-                } else {
-                    noCondition()
-                },
-            )
-            .orderBy(EVENTS.ID.asc())
+        val queryWithoutLimit =
+            db
+                .select(EVENTS)
+                .from(EVENTS)
+                .where(mainCondition)
+                .and(
+                    if (accountGuid != null) {
+                        EVENTS.ACCOUNT_GUID.eq(accountGuid)
+                    } else {
+                        noCondition()
+                    },
+                )
+                .and(
+                    if (aggregator != null) {
+                        EVENTS.AGGREGATOR.eq(aggregator)
+                    } else {
+                        noCondition()
+                    },
+                )
+                .and(
+                    if (aggregatorGuid != null) {
+                        EVENTS.AGGREGATOR_GUID.eq(aggregatorGuid)
+                    } else {
+                        noCondition()
+                    },
+                )
+                .and(
+                    if (!eventTypes.isNullOrEmpty()) {
+                        EVENTS.TYPE.`in`(eventTypes)
+                    } else {
+                        noCondition()
+                    },
+                )
+                .orderBy(EVENTS.ID.asc())
         val query = if (maxBatchSize != null) queryWithoutLimit.limit(maxBatchSize) else queryWithoutLimit
 
         return query.asFlow()

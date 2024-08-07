@@ -14,7 +14,6 @@ class AppController(
     private val updateUserInformation: UpdateUserInformation,
     private val removeUser: RemoveUser,
 ) {
-
     @PostMapping("/api/users")
     suspend fun registerUser(
         @RequestBody registerUserRequest: RegisterUserRequest,

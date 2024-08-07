@@ -24,7 +24,11 @@ class InlineProcessor(
     /**
      * Main use case is to replay all events from scratch to the new DB (projection).
      */
-    suspend fun replayEvents(from: Long, to: Long, skipReactor: Boolean = false) {
+    suspend fun replayEvents(
+        from: Long,
+        to: Long,
+        skipReactor: Boolean = false,
+    ) {
         logger.info { "replayEvents $from $to $skipReactor" }
         val start = System.currentTimeMillis()
 
@@ -41,7 +45,11 @@ class InlineProcessor(
      * Main use case for new events.
      */
     @Timed
-    suspend fun process(event: DomainEvent, meta: EventMetadata, skipReactor: Boolean = false) {
+    suspend fun process(
+        event: DomainEvent,
+        meta: EventMetadata,
+        skipReactor: Boolean = false,
+    ) {
         logger.info { "Processing $event $meta $skipReactor" }
         if (meta.skip) {
             return

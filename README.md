@@ -344,10 +344,10 @@ class DebugService(
 You can run your application in dev mode that enables live coding using:
 
 ```shell script
-./bin/start-postgres.sh
-./bin/generate-flyway.sh
-./bin/generate-jooq.sh
-./bin/run-dev.sh
+./bin/start-postgres
+./bin/generate-flyway
+./bin/generate-jooq
+./bin/run-dev
 ```
 
 ## Packaging and running the application
@@ -355,5 +355,5 @@ You can run your application in dev mode that enables live coding using:
 The application can be packaged using:
 
 ```shell script
-./bin/build-docker.sh
+./bin/build-docker
 ```

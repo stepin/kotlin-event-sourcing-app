@@ -8,4 +8,4 @@ spring:
     flyway:
         enabled: false
     r2dbc:
-        url: r2dbc:tc:postgresql:///kotlin-bootstrap-app_test?TC_IMAGE_TAG=15.2
+        url: r2dbc:tc:postgresql:///kotlin-event-sourcing-app_test?TC_IMAGE_TAG=15.2

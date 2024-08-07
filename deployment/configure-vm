@@ -28,12 +28,12 @@ make install PREFIX=/usr
 # podman login --username XXX docker.io
 
 # create folders for data
-mkdir -p /data/kotlin-bootstrap-app-images /data/postgres
+mkdir -p /data/kotlin-event-sourcing-app-images /data/postgres
 chmod -R 777 /data
 
 # start containers
 scp services/*.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now container-postgres container-kotlin-bootstrap-app
+systemctl enable --now container-postgres container-kotlin-event-sourcing-app
 
 echo please, reboot

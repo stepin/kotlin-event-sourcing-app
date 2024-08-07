@@ -1,0 +1,32 @@
+group: name.stepin
+artifact: kotlin-event-sourcing-app
+name: kotlin-event-sourcing-app
+description: Kotlin event sourcing app template (with ES engine)
+preset: spring
+type: root
+extensions:
+  - graphql
+  - postgres
+  - flyway
+  - jooq
+  - dokka
+  - jib
+  - local-dev
+  - systemd-deployment
+variables:
+  REPO: 'http://localhost:3000/stepin/kotlin-event-sourcing-app/src/branch/main/src/main/kotlin'
+  SONAR_HOST_URL: 'http://localhost:9000'
+  SONAR_PROJECT_KEY: kotlin-event-sourcing-app
+  SONAR_PROJECT_NAME: kotlin-event-sourcing-app
+  SONAR_TOKEN: sqp_821b1d3209761625bdd29259674237d429bce626
+libs: |
+    [versions]
+    extendedSclars = "22.0"
+    reflections = "0.10.2"
+
+    [libraries]
+    graphql-java-extended-scalars = { module = "com.graphql-java:graphql-java-extended-scalars", version.ref="extendedSclars"}
+    reflections = { module = "org.reflections:reflections", version.ref="reflections"}
+deps: |
+    implementation(libs.graphql.java.extended.scalars)
+    implementation(libs.reflections)
